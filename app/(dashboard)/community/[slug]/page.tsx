@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, notFound } from 'next/navigation'
-import Link from 'next/link'
 import { Plus, Users, FileText, Loader2, PawPrint, Clock, TrendingUp, Flame, Calendar } from 'lucide-react'
 import {
   getCommunityBySlug,
@@ -13,6 +12,7 @@ import {
   type PostSort,
 } from '@/lib/community/service'
 import { PostCard } from '@/components/community/post-card'
+import { CreatePostDialog } from '@/components/community/create-post-dialog'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import type { Community, PostWithMeta } from '@/lib/auth/types'
@@ -140,12 +140,12 @@ export default function CommunityPage() {
 
             {/* Action buttons */}
             <div className="flex items-center gap-2 pb-0.5">
-              {user && (
-                <Button asChild size="sm" variant="outline">
-                  <Link href={`/community/${slug}/new`} className="gap-1.5">
+              {user && community && (
+                <CreatePostDialog communityId={community.id} communitySlug={slug} onCreated={load}>
+                  <Button size="sm" variant="outline" className="gap-1.5">
                     <Plus className="w-4 h-4" /> Post
-                  </Link>
-                </Button>
+                  </Button>
+                </CreatePostDialog>
               )}
               {user && (
                 <Button
@@ -192,10 +192,10 @@ export default function CommunityPage() {
               <div className="py-16 text-center bg-card rounded-2xl boty-shadow">
                 <FileText className="w-10 h-10 mx-auto mb-3 text-muted-foreground/30" />
                 <p className="font-semibold text-foreground">No posts yet</p>
-                {user && (
-                  <Button asChild size="sm" className="mt-4">
-                    <Link href={`/community/${slug}/new`}>Create First Post</Link>
-                  </Button>
+                {user && community && (
+                  <CreatePostDialog communityId={community.id} communitySlug={slug} onCreated={load}>
+                    <Button size="sm" className="mt-4">Create First Post</Button>
+                  </CreatePostDialog>
                 )}
               </div>
             ) : (
@@ -256,12 +256,12 @@ export default function CommunityPage() {
               <p className="text-xs text-muted-foreground leading-relaxed">
                 No upcoming events. Post to organize a meetup with community members!
               </p>
-              {user && (
-                <Button asChild size="sm" variant="outline" className="w-full mt-3">
-                  <Link href={`/community/${slug}/new`} className="gap-1.5">
+              {user && community && (
+                <CreatePostDialog communityId={community.id} communitySlug={slug} onCreated={load}>
+                  <Button size="sm" variant="outline" className="w-full mt-3 gap-1.5">
                     <Plus className="w-3.5 h-3.5" /> Post Event
-                  </Link>
-                </Button>
+                  </Button>
+                </CreatePostDialog>
               )}
             </div>
           </aside>

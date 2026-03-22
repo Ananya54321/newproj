@@ -106,13 +106,20 @@ export function PostCard({ post, userId, showCommunity = true, onDeleted }: Post
           </Link>
 
           {/* Body preview */}
-          {post.type === 'text' && post.content && (
+          {post.content && (
             <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
               {post.content}
             </p>
           )}
 
-          {post.type === 'link' && post.link_url && (
+          {post.image_urls?.length > 0 && (
+            <Link href={postHref} className="block mt-2 rounded-lg overflow-hidden max-h-52 bg-background/50">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={post.image_urls[0]} alt={post.title} className="w-full h-full object-cover" />
+            </Link>
+          )}
+
+          {post.link_url && (
             <a
               href={post.link_url}
               target="_blank"
@@ -122,13 +129,6 @@ export function PostCard({ post, userId, showCommunity = true, onDeleted }: Post
               <ExternalLink className="w-3 h-3 shrink-0" />
               <span className="truncate max-w-[240px]">{new URL(post.link_url).hostname}</span>
             </a>
-          )}
-
-          {post.type === 'image' && post.image_urls?.length > 0 && (
-            <Link href={postHref} className="block mt-2 rounded-lg overflow-hidden max-h-52 bg-background/50">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={post.image_urls[0]} alt={post.title} className="w-full h-full object-cover" />
-            </Link>
           )}
 
           {/* Footer */}

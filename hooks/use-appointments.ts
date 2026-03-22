@@ -12,13 +12,13 @@ import { supabaseClient } from '@/lib/supabase/client'
 import type { AppointmentStatus, AppointmentWithRelations } from '@/lib/auth/types'
 
 export function useAppointments() {
-  const { user, profile } = useAuth()
+  const { user, profile, loading: authLoading } = useAuth()
   const [appointments, setAppointments] = useState<AppointmentWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    if (!user?.id) return
+    if (!user?.id || authLoading) return
     setLoading(true)
     setError(null)
     try {
@@ -32,7 +32,7 @@ export function useAppointments() {
     } finally {
       setLoading(false)
     }
-  }, [user?.id, profile?.role])
+  }, [user?.id, profile?.role, authLoading])
 
   useEffect(() => {
     load()

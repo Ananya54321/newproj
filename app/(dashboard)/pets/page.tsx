@@ -1,9 +1,8 @@
-import Link from 'next/link'
-import { Plus, PawPrint } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { PawPrint } from 'lucide-react'
 import { getServerUser, createServerSupabaseClient } from '@/lib/supabase/server'
 import { getUserPets } from '@/lib/pets/service'
 import { PetCard } from '@/components/pets/pet-card'
+import { AddPetDialog } from '@/components/pets/add-pet-dialog'
 import { redirect } from 'next/navigation'
 
 export const metadata = { title: 'My Pets — Furever' }
@@ -32,12 +31,7 @@ export default async function PetsPage() {
                 </p>
               </div>
             </div>
-            <Button asChild>
-              <Link href="/pets/new" className="gap-2">
-                <Plus className="w-4 h-4" />
-                Add Pet
-              </Link>
-            </Button>
+            <AddPetDialog />
           </div>
         </div>
       </div>
@@ -51,9 +45,14 @@ export default async function PetsPage() {
             <p className="text-sm text-muted-foreground mt-1 mb-5">
               Add your first pet to start tracking health records and booking appointments.
             </p>
-            <Button asChild>
-              <Link href="/pets/new">Add Your First Pet</Link>
-            </Button>
+            <AddPetDialog>
+              <button
+                type="button"
+                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 boty-transition"
+              >
+                Add Your First Pet
+              </button>
+            </AddPetDialog>
           </div>
         ) : (
           <div className="space-y-3">

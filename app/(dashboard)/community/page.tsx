@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Plus, Loader2, TrendingUp, Clock, Flame, Users, Star, PawPrint } from 'lucide-react'
 import { getCommunities, getPosts, getUserCommunities, type PostSort } from '@/lib/community/service'
 import { PostCard } from '@/components/community/post-card'
+import { CreatePostDialog } from '@/components/community/create-post-dialog'
+import { CreateCommunityDialog } from '@/components/community/create-community-dialog'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import type { PostWithMeta, Community, CommunityWithMembership } from '@/lib/auth/types'
@@ -65,16 +67,16 @@ export default function CommunityFeedPage() {
             </div>
             {user && (
               <div className="flex items-center gap-2 shrink-0">
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/community/new" className="gap-1.5">
+                <CreateCommunityDialog>
+                  <Button variant="outline" size="sm" className="gap-1.5">
                     <Plus className="w-4 h-4" /> New Community
-                  </Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link href="/community/new-post" className="gap-1.5">
+                  </Button>
+                </CreateCommunityDialog>
+                <CreatePostDialog communities={userCommunities.map((c) => ({ id: c.id, slug: c.slug, name: c.name }))}>
+                  <Button size="sm" className="gap-1.5">
                     <Plus className="w-4 h-4" /> Create Post
-                  </Link>
-                </Button>
+                  </Button>
+                </CreatePostDialog>
               </div>
             )}
           </div>
@@ -157,9 +159,9 @@ export default function CommunityFeedPage() {
                     <Link href="/community/explore">Explore Communities</Link>
                   </Button>
                   {user && (
-                    <Button asChild size="sm">
-                      <Link href="/community/new">Create Community</Link>
-                    </Button>
+                    <CreateCommunityDialog>
+                      <Button size="sm">Create Community</Button>
+                    </CreateCommunityDialog>
                   )}
                 </div>
               </div>
@@ -237,11 +239,11 @@ export default function CommunityFeedPage() {
               <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
                 Build a space for pet owners who share your passion. It only takes a minute!
               </p>
-              <Button asChild size="sm" className="w-full">
-                <Link href="/community/new" className="gap-1.5">
+              <CreateCommunityDialog>
+                <Button size="sm" className="w-full gap-1.5">
                   <Plus className="w-4 h-4" /> New Community
-                </Link>
-              </Button>
+                </Button>
+              </CreateCommunityDialog>
             </div>
 
             {/* Quick stats */}

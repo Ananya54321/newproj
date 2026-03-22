@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Plus, CalendarDays, Loader2 } from 'lucide-react'
+import { Plus, CalendarDays } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AppointmentCard } from '@/components/vets/appointment-card'
@@ -20,9 +20,28 @@ export default function AppointmentsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
-        <Loader2 className="w-5 h-5 animate-spin" />
-        Loading appointments...
+      <div className="min-h-screen">
+        <div className="bg-card border-b border-border/50">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 animate-pulse">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-muted shrink-0" />
+              <div className="space-y-2">
+                <div className="h-7 bg-muted rounded w-48" />
+                <div className="h-4 bg-muted rounded w-64" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-3 animate-pulse">
+          <div className="h-10 bg-card rounded-xl w-48" />
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-card rounded-2xl p-5 boty-shadow space-y-3">
+              <div className="h-4 bg-muted rounded w-1/3" />
+              <div className="h-5 bg-muted rounded w-1/2" />
+              <div className="h-4 bg-muted rounded w-1/4" />
+            </div>
+          ))}
+        </div>
       </div>
     )
   }

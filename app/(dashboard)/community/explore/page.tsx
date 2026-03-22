@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { Plus, Loader2, Search } from 'lucide-react'
 import { getCommunities, getUserCommunities, joinCommunity, leaveCommunity } from '@/lib/community/service'
 import { CommunityCard } from '@/components/community/community-card'
+import { CreateCommunityDialog } from '@/components/community/create-community-dialog'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import type { Community } from '@/lib/auth/types'
@@ -60,11 +60,11 @@ export default function ExplorePage() {
           <h1 className="font-serif text-2xl font-semibold text-foreground">Explore Communities</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Discover and join pet communities</p>
         </div>
-        <Button asChild size="sm">
-          <Link href="/community/new" className="gap-1.5">
+        <CreateCommunityDialog>
+          <Button size="sm" className="gap-1.5">
             <Plus className="w-4 h-4" /> New
-          </Link>
-        </Button>
+          </Button>
+        </CreateCommunityDialog>
       </div>
 
       {/* Search */}
@@ -88,7 +88,9 @@ export default function ExplorePage() {
           <Search className="w-10 h-10 mx-auto mb-3 text-muted-foreground/30" />
           <p className="font-semibold text-foreground">No communities found</p>
           <p className="text-sm text-muted-foreground mt-1 mb-4">Try a different search or create one!</p>
-          <Button asChild size="sm"><Link href="/community/new">Create Community</Link></Button>
+          <CreateCommunityDialog>
+            <Button size="sm">Create Community</Button>
+          </CreateCommunityDialog>
         </div>
       ) : (
         <div className="space-y-3">

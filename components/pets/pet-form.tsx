@@ -23,9 +23,10 @@ interface PetFormProps {
   initial?: Pet
   onSubmit: (data: PetFormData) => Promise<{ error: string | null }>
   submitLabel?: string
+  onSuccess?: () => void
 }
 
-export function PetForm({ initial, onSubmit, submitLabel = 'Save Pet' }: PetFormProps) {
+export function PetForm({ initial, onSubmit, submitLabel = 'Save Pet', onSuccess }: PetFormProps) {
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
@@ -75,7 +76,11 @@ export function PetForm({ initial, onSubmit, submitLabel = 'Save Pet' }: PetForm
       toast.error(result.error)
     } else {
       toast.success(initial ? 'Pet updated!' : 'Pet added!')
-      router.push('/pets')
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        router.push('/pets')
+      }
     }
     setSubmitting(false)
   }
