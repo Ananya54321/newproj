@@ -94,6 +94,10 @@ export interface Profile {
   verification_status: VerificationStatus | null
   phone: string | null
   bio: string | null
+  slug: string | null
+  address: string | null
+  latitude: number | null
+  longitude: number | null
   created_at: string
   updated_at: string
 }
@@ -124,6 +128,8 @@ export interface VeterinarianProfile {
   consultation_fee: number | null
   available_hours: Record<string, unknown> | null
   bio: string | null
+  social_links: Record<string, string> | null
+  extra_document_urls: string[] | null
   verified_at: string | null
   verified_by: string | null
   rejection_reason: string | null
@@ -138,6 +144,8 @@ export interface NgoProfile {
   website_url: string | null
   address: string | null
   accepts_donations: boolean
+  social_links: Record<string, string> | null
+  extra_document_urls: string[] | null
   verified_at: string | null
   verified_by: string | null
   rejection_reason: string | null
@@ -152,6 +160,8 @@ export interface Store {
   logo_url: string | null
   banner_url: string | null
   address: string | null
+  store_images: string[] | null
+  social_links: Record<string, string> | null
   is_active: boolean
   created_at: string
   updated_at: string
@@ -187,6 +197,8 @@ export interface Order {
   total_amount: number
   shipping_address: string | null
   notes: string | null
+  dispatch_note: string | null
+  tracking_number: string | null
   created_at: string
   updated_at: string
 }
@@ -370,7 +382,10 @@ export interface VetWithProfile {
   consultation_fee: number | null
   available_hours: Record<string, [string, string] | undefined> | null
   bio: string | null
+  social_links: Record<string, string> | null
   verified_at: string | null
+  /** Distance in km from user's location — populated client-side */
+  distance?: number
 }
 
 // ─── Label/constant maps ──────────────────────────────────────────────────────
@@ -445,6 +460,56 @@ export const EMERGENCY_CATEGORY_CONFIG: Record<
   other:     { label: 'Other',          color: 'bg-secondary text-secondary-foreground' },
 }
 
+// ─── Phase 10 domain models ───────────────────────────────────────────────────
+
+export type NgoEventType = 'meetup' | 'fundraiser'
+
+export interface NgoEvent {
+  id: string
+  ngo_id: string
+  title: string
+  description: string | null
+  type: NgoEventType
+  location: string | null
+  event_date: string
+  image_url: string | null
+  registration_url: string | null
+  goal_amount: number | null
+  raised_amount: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface NgoEventWithNgo extends NgoEvent {
+  ngo: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> & {
+    ngo_profile: Pick<NgoProfile, 'organization_name'>
+  }
+}
+
+export interface ProductReview {
+  id: string
+  product_id: string
+  user_id: string
+  order_id: string | null
+  rating: number
+  comment: string | null
+  created_at: string
+}
+
+export interface ProductReviewWithUser extends ProductReview {
+  user: Pick<Profile, 'id' | 'full_name' | 'avatar_url'>
+}
+
+export interface StripeConnection {
+  id: string
+  user_id: string
+  stripe_account_id: string
+  charges_enabled: boolean
+  details_submitted: boolean
+  created_at: string
+}
+
 // ─── Auth types ───────────────────────────────────────────────────────────────
 
 export type AuthUser = User
@@ -483,12 +548,20 @@ export interface SignupFormData {
   license_number?: string
   specialty?: string[]
   clinic_name?: string
+  clinic_address?: string
+  license_document_url?: string
+  extra_document_urls?: string[]
   // NGO-specific
   organization_name?: string
   registration_number?: string
   mission_statement?: string
+  address?: string
+  registration_document_url?: string
   // Store-specific
   store_name?: string
+  store_images?: string[]
+  // Shared professional
+  social_links?: Record<string, string>
 }
 
 export interface ResetPasswordFormData {

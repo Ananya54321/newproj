@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
 import { supabaseClient } from '@/lib/supabase/client'
+import { updateProfileSlug } from '@/lib/profiles/service'
 import { toast } from 'sonner'
-import { Loader2, User } from 'lucide-react'
+import { Loader2, User, ExternalLink, Link2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ROLE_LABELS } from '@/lib/auth/types'
 
@@ -15,11 +17,15 @@ export default function ProfilePage() {
   const [bio, setBio] = useState('')
   const [saving, setSaving] = useState(false)
 
+  const [slug, setSlug] = useState('')
+  const [savingSlug, setSavingSlug] = useState(false)
+
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name ?? '')
       setPhone(profile.phone ?? '')
       setBio(profile.bio ?? '')
+      setSlug(profile.slug ?? '')
     }
   }, [profile])
 
@@ -40,6 +46,25 @@ export default function ProfilePage() {
     }
   }
 
+  const handleSlugSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user?.id) return
+    const trimmed = slug.trim().toLowerCase()
+    if (!trimmed) {
+      toast.error('Username cannot be empty')
+      return
+    }
+    setSavingSlug(true)
+    const { error } = await updateProfileSlug(user.id, trimmed)
+    setSavingSlug(false)
+    if (error) {
+      toast.error(error)
+    } else {
+      await refreshProfile()
+      toast.success('Username saved')
+    }
+  }
+
   if (!profile) {
     return (
       <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
@@ -54,7 +79,6 @@ export default function ProfilePage() {
       <div className="bg-card border-b border-border/50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
           <div className="flex items-center gap-5">
-            {/* Avatar */}
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               {profile.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -76,7 +100,8 @@ export default function ProfilePage() {
 
       {/* Content */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-        <div className="max-w-xl">
+        <div className="max-w-xl space-y-5">
+          {/* Personal Information */}
           <form onSubmit={handleSave} className="bg-card rounded-2xl p-6 boty-shadow space-y-4">
             <h2 className="font-semibold text-foreground mb-1">Personal Information</h2>
 
@@ -126,6 +151,52 @@ export default function ProfilePage() {
 
             <Button type="submit" disabled={saving} className="w-full">
               {saving ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Saving…</> : 'Save Changes'}
+            </Button>
+          </form>
+
+          {/* Public Profile URL */}
+          <form onSubmit={handleSlugSave} className="bg-card rounded-2xl p-6 boty-shadow space-y-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Link2 className="w-4 h-4 text-primary" />
+              <h2 className="font-semibold text-foreground">Public Profile URL</h2>
+            </div>
+            <p className="text-xs text-muted-foreground -mt-2">
+              Choose a unique username so others can find your public profile.
+            </p>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Username</label>
+              <div className="flex rounded-xl overflow-hidden border border-border/60 focus-within:ring-2 focus-within:ring-primary/30">
+                <span className="px-3 py-2.5 bg-muted text-sm text-muted-foreground border-r border-border/40 shrink-0">
+                  furever.app/users/
+                </span>
+                <input
+                  type="text"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
+                  placeholder="your-username"
+                  maxLength={50}
+                  className="flex-1 px-3 py-2.5 bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                3–50 characters. Letters, numbers, hyphens and underscores only.
+              </p>
+            </div>
+
+            {profile.slug && (
+              <Link
+                href={`/users/${profile.slug}`}
+                target="_blank"
+                className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+              >
+                <ExternalLink className="w-3 h-3" />
+                View your public profile
+              </Link>
+            )}
+
+            <Button type="submit" disabled={savingSlug} variant="outline" className="w-full">
+              {savingSlug ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Saving…</> : 'Save Username'}
             </Button>
           </form>
         </div>

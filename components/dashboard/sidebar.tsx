@@ -17,6 +17,7 @@ import {
   Heart,
   Stethoscope,
   Shield,
+  Calendar,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
@@ -24,7 +25,9 @@ import { NotificationBell } from '@/components/community/notification-bell'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
-const BASE_NAV_ITEMS = [
+// ─── Nav item sets per role ───────────────────────────────────────────────────
+
+const USER_NAV = [
   { href: '/pets', label: 'My Pets', icon: PawPrint },
   { href: '/appointments', label: 'Appointments', icon: CalendarDays },
   { href: '/vets', label: 'Find a Vet', icon: Stethoscope },
@@ -36,17 +39,30 @@ const BASE_NAV_ITEMS = [
   { href: '/profile', label: 'Profile', icon: User },
 ]
 
-const STORE_OWNER_ITEMS = [
+const VET_NAV = [
+  { href: '/vet-practice', label: 'My Practice', icon: Stethoscope },
+  { href: '/vet-practice/schedule', label: 'My Schedule', icon: Calendar },
+  { href: '/community', label: 'Community', icon: Users },
+  { href: '/profile', label: 'Profile', icon: User },
+]
+
+const STORE_OWNER_NAV = [
   { href: '/store', label: 'My Store', icon: Store },
+  { href: '/orders', label: 'Orders', icon: Package },
+  { href: '/community', label: 'Community', icon: Users },
+  { href: '/profile', label: 'Profile', icon: User },
 ]
 
-const NGO_ITEMS = [
+const NGO_NAV = [
   { href: '/ngo', label: 'NGO Dashboard', icon: Heart },
+  { href: '/ngo/events', label: 'Events', icon: Calendar },
+  { href: '/community', label: 'Community', icon: Users },
+  { href: '/profile', label: 'Profile', icon: User },
 ]
 
-const ADMIN_ITEMS = [
-  { href: '/admin', label: 'Admin Panel', icon: Shield },
-]
+const ADMIN_EXTRA = [{ href: '/admin', label: 'Admin Panel', icon: Shield }]
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export function DashboardSidebar() {
   const pathname = usePathname()
@@ -59,12 +75,25 @@ export function DashboardSidebar() {
     window.location.href = '/'
   }
 
-  const navItems = [
-    ...BASE_NAV_ITEMS,
-    ...(profile?.role === 'store_owner' ? STORE_OWNER_ITEMS : []),
-    ...(profile?.role === 'ngo' ? NGO_ITEMS : []),
-    ...(profile?.role === 'admin' ? ADMIN_ITEMS : []),
-  ]
+  const isAdmin = profile?.role === 'admin'
+  const isVet = profile?.role === 'veterinarian'
+  const isStoreOwner = profile?.role === 'store_owner'
+  const isNgo = profile?.role === 'ngo'
+
+  let navItems: typeof USER_NAV
+  if (isAdmin) {
+    navItems = [...USER_NAV, ...ADMIN_EXTRA]
+  } else if (isVet) {
+    navItems = VET_NAV
+  } else if (isStoreOwner) {
+    navItems = STORE_OWNER_NAV
+  } else if (isNgo) {
+    navItems = NGO_NAV
+  } else {
+    navItems = USER_NAV
+  }
+
+  const showEmergencyButton = !isVet
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
@@ -74,7 +103,7 @@ export function DashboardSidebar() {
           <div>
             <p className="font-serif text-lg font-semibold text-foreground tracking-wide">Furever</p>
             {profile?.full_name && (
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">
+              <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[9rem]">
                 {profile.full_name}
               </p>
             )}
@@ -106,20 +135,22 @@ export function DashboardSidebar() {
         })}
       </nav>
 
-      {/* Emergency CTA */}
-      <div className="px-3 pb-3">
-        <Link
-          href="/emergency/report"
-          onClick={() => setMobileOpen(false)}
-          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 transition-colors"
-        >
-          <AlertTriangle className="w-4 h-4" />
-          Report Emergency
-        </Link>
-      </div>
+      {/* Emergency CTA — only for user / admin */}
+      {showEmergencyButton && (
+        <div className="px-3 pb-3">
+          <Link
+            href="/emergency/report"
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 transition-colors"
+          >
+            <AlertTriangle className="w-4 h-4" />
+            Report Emergency
+          </Link>
+        </div>
+      )}
 
       {/* Sign out */}
-      <div className="px-3 pb-5 border-t border-border/60 pt-3">
+      <div className={cn('px-3 pb-5 border-t border-border/60 pt-3', showEmergencyButton ? '' : 'mt-auto')}>
         <button
           type="button"
           onClick={handleSignOut}
@@ -152,17 +183,9 @@ export function DashboardSidebar() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <>
-          <div
-            className="lg:hidden fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm"
-            onClick={() => setMobileOpen(false)}
-          />
+          <div className="lg:hidden fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
           <aside className="lg:hidden fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-card border-r border-border/60 shadow-xl">
-            <button
-              type="button"
-              onClick={() => setMobileOpen(false)}
-              className="absolute top-4 right-4 p-1.5 text-muted-foreground hover:text-foreground"
-              aria-label="Close menu"
-            >
+            <button type="button" onClick={() => setMobileOpen(false)} className="absolute top-4 right-4 p-1.5 text-muted-foreground hover:text-foreground" aria-label="Close menu">
               <X className="w-5 h-5" />
             </button>
             {sidebarContent}

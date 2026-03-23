@@ -8,6 +8,7 @@ const PROTECTED_PATHS = [
   '/dashboard', '/onboarding',
   '/pets', '/appointments', '/emergency', '/orders', '/profile', '/store', '/ngo', '/admin',
   '/community', '/ngos', '/marketplace', '/vets', '/checkout',
+  '/vet-practice',
 ]
 
 function matchesPrefix(pathname: string, prefixes: string[]): boolean {

@@ -138,15 +138,15 @@ async function createProfileIfMissing(user: User) {
     const admin = createServerSupabaseAdminClient()
     const { data: existing } = await admin
       .from('profiles')
-      .select('id')
+      .select('id, role')
       .eq('id', user.id)
       .single()
 
-    if (!existing) {
-      const meta = user.user_metadata ?? {}
-      const role = (meta.role as string) ?? 'user'
-      const needsVerification = ['veterinarian', 'ngo', 'store_owner'].includes(role)
+    const meta = user.user_metadata ?? {}
+    const role = (meta.role as string) ?? 'user'
+    const needsVerification = ['veterinarian', 'ngo', 'store_owner'].includes(role)
 
+    if (!existing) {
       await admin.from('profiles').insert({
         id: user.id,
         email: user.email ?? '',
@@ -155,6 +155,69 @@ async function createProfileIfMissing(user: User) {
         avatar_url: (meta.avatar_url as string) ?? null,
         verification_status: needsVerification ? 'pending' : null,
       })
+    }
+
+    // Ensure specialty table row exists for professional roles.
+    // This runs on both new signups and re-visits (idempotent via upsert).
+    const effectiveRole = existing?.role ?? role
+
+    if (effectiveRole === 'veterinarian') {
+      await admin.from('veterinarians').upsert(
+        {
+          id: user.id,
+          license_number: (meta.license_number as string) ?? null,
+          clinic_name: (meta.clinic_name as string) ?? null,
+          clinic_address: (meta.clinic_address as string) ?? null,
+          license_document_url: (meta.license_document_url as string) ?? null,
+          extra_document_urls: (meta.extra_document_urls as string[]) ?? [],
+          social_links: (meta.social_links as Record<string, string>) ?? {},
+        },
+        { onConflict: 'id', ignoreDuplicates: true }
+      )
+      // Also store address + coords on profile
+      if (meta.clinic_address) {
+        await admin.from('profiles').update({ address: meta.clinic_address }).eq('id', user.id)
+      }
+    } else if (effectiveRole === 'ngo') {
+      await admin.from('ngos').upsert(
+        {
+          id: user.id,
+          organization_name: (meta.organization_name as string) ?? 'Unnamed Organisation',
+          registration_number: (meta.registration_number as string) ?? null,
+          mission_statement: (meta.mission_statement as string) ?? null,
+          registration_document_url: (meta.registration_document_url as string) ?? null,
+          extra_document_urls: (meta.extra_document_urls as string[]) ?? [],
+          social_links: (meta.social_links as Record<string, string>) ?? {},
+          accepts_donations: true,
+        },
+        { onConflict: 'id', ignoreDuplicates: true }
+      )
+      if (meta.address) {
+        await admin.from('profiles').update({ address: meta.address }).eq('id', user.id)
+      }
+    } else if (effectiveRole === 'store_owner') {
+      const storeName = (meta.store_name as string) ?? null
+      if (storeName) {
+        const slug = storeName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+        await admin.from('stores').upsert(
+          {
+            owner_id: user.id,
+            name: storeName,
+            slug,
+            address: (meta.address as string) ?? null,
+            store_images: (meta.store_images as string[]) ?? [],
+            social_links: (meta.social_links as Record<string, string>) ?? {},
+            is_active: false,
+          },
+          { onConflict: 'owner_id', ignoreDuplicates: true }
+        )
+      }
+      if (meta.address) {
+        await admin.from('profiles').update({ address: meta.address }).eq('id', user.id)
+      }
     }
   } catch (err) {
     // Non-fatal — the DB trigger on auth.users also creates the profile row

@@ -253,11 +253,11 @@ export async function approveVet(
 ): Promise<{ error: string | null }> {
   const now = new Date().toISOString()
 
+  // Upsert so we create the row if it was never inserted during signup
   const [vetUpdate, profileUpdate] = await Promise.all([
     client
       .from('veterinarians')
-      .update({ verified_at: now, verified_by: adminId })
-      .eq('id', vetId),
+      .upsert({ id: vetId, verified_at: now, verified_by: adminId }, { onConflict: 'id' }),
     client
       .from('profiles')
       .update({ verification_status: 'approved' })

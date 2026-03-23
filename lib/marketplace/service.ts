@@ -8,6 +8,8 @@ import type {
   OrderWithItems,
   OrderStatus,
   ProductCategory,
+  ProductReview,
+  ProductReviewWithUser,
 } from '@/lib/auth/types'
 
 // ─── Form data ────────────────────────────────────────────────────────────────
@@ -304,8 +306,101 @@ export async function checkout(
   return { orderIds, error: null }
 }
 
+// ─── Dispatch ────────────────────────────────────────────────────────────────
+
+export async function dispatchOrder(
+  orderId: string,
+  data: { dispatch_note?: string | null; tracking_number?: string | null }
+): Promise<{ error: string | null }> {
+  const { error } = await supabaseClient
+    .from('orders')
+    .update({ status: 'shipped', ...data })
+    .eq('id', orderId)
+  return { error: error?.message ?? null }
+}
+
+export async function markOrderDelivered(orderId: string): Promise<{ error: string | null }> {
+  const { error } = await supabaseClient
+    .from('orders')
+    .update({ status: 'delivered' })
+    .eq('id', orderId)
+  return { error: error?.message ?? null }
+}
+
+// ─── Reviews ──────────────────────────────────────────────────────────────────
+
+export interface ReviewFormData {
+  product_id: string
+  order_id?: string | null
+  rating: number
+  comment?: string | null
+}
+
+export async function createReview(
+  data: ReviewFormData,
+  userId: string
+): Promise<{ review: ProductReview | null; error: string | null }> {
+  const { data: review, error } = await supabaseClient
+    .from('product_reviews')
+    .insert({ ...data, user_id: userId })
+    .select()
+    .single()
+  if (error) return { review: null, error: error.message }
+  return { review: review as ProductReview, error: null }
+}
+
+export async function getProductReviews(
+  productId: string,
+  client: SupabaseClient = supabaseClient
+): Promise<ProductReviewWithUser[]> {
+  const { data, error } = await client
+    .from('product_reviews')
+    .select(`
+      *,
+      user:profiles!product_reviews_user_id_fkey(id, full_name, avatar_url)
+    `)
+    .eq('product_id', productId)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ((data ?? []) as unknown[]).map((raw) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const r = raw as any
+    return { ...r, user: Array.isArray(r.user) ? r.user[0] : r.user }
+  }) as ProductReviewWithUser[]
+}
+
+export async function getAverageRating(
+  productId: string,
+  client: SupabaseClient = supabaseClient
+): Promise<{ average: number; count: number }> {
+  const { data, error } = await client
+    .from('product_reviews')
+    .select('rating')
+    .eq('product_id', productId)
+  if (error || !data?.length) return { average: 0, count: 0 }
+  const sum = data.reduce((acc, r) => acc + (r.rating as number), 0)
+  return { average: sum / data.length, count: data.length }
+}
+
+export async function getUserReviewForProduct(
+  productId: string,
+  userId: string,
+  client: SupabaseClient = supabaseClient
+): Promise<ProductReview | null> {
+  const { data } = await client
+    .from('product_reviews')
+    .select('*')
+    .eq('product_id', productId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  return (data as ProductReview | null) ?? null
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 export function formatPrice(price: number): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price)
 }
+
+// Suppress unused import warnings
+void (undefined as unknown as Order)

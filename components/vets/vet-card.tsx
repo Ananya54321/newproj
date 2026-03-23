@@ -5,13 +5,15 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { VetWithProfile } from '@/lib/auth/types'
 import { cn } from '@/lib/utils'
+import { formatDistance } from '@/lib/geo/utils'
 
 interface VetCardProps {
   vet: VetWithProfile
   className?: string
+  distance?: number | null
 }
 
-export function VetCard({ vet, className }: VetCardProps) {
+export function VetCard({ vet, className, distance }: VetCardProps) {
   const name = vet.profile?.full_name ?? 'Dr. Unknown'
   const avatar = vet.profile?.avatar_url
   const specialties = vet.specialty ?? []
@@ -73,11 +75,16 @@ export function VetCard({ vet, className }: VetCardProps) {
         </div>
       )}
 
-      {/* Clinic address */}
-      {vet.clinic_address && (
+      {/* Clinic address / distance */}
+      {(vet.clinic_address || distance != null) && (
         <p className="text-xs text-muted-foreground flex items-start gap-1.5">
           <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-          <span className="line-clamp-1">{vet.clinic_address}</span>
+          <span className="line-clamp-1">
+            {vet.clinic_address}
+            {distance != null && (
+              <span className="ml-1 text-primary font-medium">({formatDistance(distance)})</span>
+            )}
+          </span>
         </p>
       )}
 

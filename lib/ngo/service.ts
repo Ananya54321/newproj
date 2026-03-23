@@ -7,6 +7,8 @@ import type {
   NgoUpdateWithNgo,
   Donation,
   DonationWithRelations,
+  NgoEvent,
+  NgoEventWithNgo,
 } from '@/lib/auth/types'
 
 // ─── Form data ────────────────────────────────────────────────────────────────
@@ -225,4 +227,93 @@ function normalizeDonation(raw: any): DonationWithRelations {
 
 export function formatDonationAmount(amount: number, currency = 'USD'): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount)
+}
+
+// ─── NGO Events ───────────────────────────────────────────────────────────────
+
+export interface NgoEventFormData {
+  title: string
+  description?: string | null
+  type: 'meetup' | 'fundraiser'
+  location?: string | null
+  event_date: string
+  image_url?: string | null
+  registration_url?: string | null
+  goal_amount?: number | null
+}
+
+export async function getNGOEvents(
+  ngoId: string,
+  client: SupabaseClient = supabaseClient
+): Promise<NgoEvent[]> {
+  const { data, error } = await client
+    .from('ngo_events')
+    .select('*')
+    .eq('ngo_id', ngoId)
+    .eq('is_active', true)
+    .order('event_date', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as NgoEvent[]
+}
+
+export async function getUpcomingEvents(
+  limit = 20,
+  client: SupabaseClient = supabaseClient
+): Promise<NgoEventWithNgo[]> {
+  const { data, error } = await client
+    .from('ngo_events')
+    .select(`
+      *,
+      ngo:profiles!ngo_events_ngo_id_fkey(
+        id, full_name, avatar_url,
+        ngo_profile:ngos!ngos_id_fkey(organization_name)
+      )
+    `)
+    .eq('is_active', true)
+    .gte('event_date', new Date().toISOString())
+    .order('event_date', { ascending: true })
+    .limit(limit)
+  if (error) throw error
+  return ((data ?? []) as unknown[]).map((raw) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const r = raw as any
+    const ngo = Array.isArray(r.ngo) ? r.ngo[0] : r.ngo
+    if (ngo) {
+      const ngo_profile = Array.isArray(ngo.ngo_profile) ? ngo.ngo_profile[0] : ngo.ngo_profile
+      return { ...r, ngo: { ...ngo, ngo_profile } }
+    }
+    return r
+  }) as NgoEventWithNgo[]
+}
+
+export async function createNGOEvent(
+  data: NgoEventFormData,
+  ngoId: string
+): Promise<{ event: NgoEvent | null; error: string | null }> {
+  const { data: event, error } = await supabaseClient
+    .from('ngo_events')
+    .insert({ ...data, ngo_id: ngoId })
+    .select()
+    .single()
+  if (error) return { event: null, error: error.message }
+  return { event: event as NgoEvent, error: null }
+}
+
+export async function updateNGOEvent(
+  eventId: string,
+  data: Partial<NgoEventFormData>
+): Promise<{ error: string | null }> {
+  const { error } = await supabaseClient
+    .from('ngo_events')
+    .update(data)
+    .eq('id', eventId)
+  return { error: error?.message ?? null }
+}
+
+export async function deleteNGOEvent(eventId: string): Promise<{ error: string | null }> {
+  const { error } = await supabaseClient
+    .from('ngo_events')
+    .update({ is_active: false })
+    .eq('id', eventId)
+  return { error: error?.message ?? null }
 }

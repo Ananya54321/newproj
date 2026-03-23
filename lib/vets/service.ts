@@ -5,6 +5,7 @@ import type {
   AppointmentWithRelations,
   ConsultationType,
   VetWithProfile,
+  VeterinarianProfile,
 } from '@/lib/auth/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -18,7 +19,55 @@ export interface AppointmentFormData {
   notes?: string
 }
 
+export interface VetUpdateData {
+  clinic_name?: string | null
+  clinic_address?: string | null
+  consultation_fee?: number | null
+  available_hours?: Record<string, [string, string] | null> | null
+  bio?: string | null
+  specialty?: string[] | null
+  years_experience?: number | null
+  social_links?: Record<string, string> | null
+}
+
 // ─── Vets ─────────────────────────────────────────────────────────────────────
+
+const VET_SELECT = `
+  id,
+  license_number,
+  specialty,
+  years_experience,
+  clinic_name,
+  clinic_address,
+  consultation_fee,
+  available_hours,
+  bio,
+  social_links,
+  verified_at,
+  profile:profiles!veterinarians_id_fkey (
+    id, full_name, avatar_url, email,
+    role, verification_status,
+    address, latitude, longitude
+  )
+`
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeVet(row: any): VetWithProfile {
+  return {
+    id: row.id,
+    license_number: row.license_number,
+    specialty: row.specialty,
+    years_experience: row.years_experience,
+    clinic_name: row.clinic_name,
+    clinic_address: row.clinic_address,
+    consultation_fee: row.consultation_fee,
+    available_hours: row.available_hours as VetWithProfile['available_hours'],
+    bio: row.bio,
+    social_links: row.social_links ?? null,
+    verified_at: row.verified_at,
+    profile: Array.isArray(row.profile) ? row.profile[0] : row.profile,
+  } as VetWithProfile
+}
 
 /**
  * Returns all approved vets with their profile joined.
@@ -30,41 +79,12 @@ export async function getApprovedVets(
 ): Promise<VetWithProfile[]> {
   const { data, error } = await client
     .from('veterinarians')
-    .select(`
-      id,
-      license_number,
-      specialty,
-      years_experience,
-      clinic_name,
-      clinic_address,
-      consultation_fee,
-      available_hours,
-      bio,
-      verified_at,
-      profile:profiles!veterinarians_id_fkey (
-        id, full_name, avatar_url, email,
-        role, verification_status
-      )
-    `)
+    .select(VET_SELECT)
     .not('verified_at', 'is', null)
     .order('verified_at', { ascending: false })
 
   if (error) throw new Error(error.message)
-
-  return (data ?? []).map((row) => ({
-    id: row.id,
-    license_number: row.license_number,
-    specialty: row.specialty,
-    years_experience: row.years_experience,
-    clinic_name: row.clinic_name,
-    clinic_address: row.clinic_address,
-    consultation_fee: row.consultation_fee,
-    available_hours: row.available_hours as VetWithProfile['available_hours'],
-    bio: row.bio,
-    verified_at: row.verified_at,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    profile: Array.isArray(row.profile) ? (row.profile[0] as any) : (row.profile as any),
-  })) as VetWithProfile[]
+  return (data ?? []).map(normalizeVet)
 }
 
 export async function getVetById(
@@ -73,33 +93,38 @@ export async function getVetById(
 ): Promise<VetWithProfile | null> {
   const { data, error } = await client
     .from('veterinarians')
-    .select(`
-      id,
-      license_number,
-      specialty,
-      years_experience,
-      clinic_name,
-      clinic_address,
-      consultation_fee,
-      available_hours,
-      bio,
-      verified_at,
-      profile:profiles!veterinarians_id_fkey (
-        id, full_name, avatar_url, email,
-        role, verification_status
-      )
-    `)
+    .select(VET_SELECT)
     .eq('id', vetId)
     .single()
 
   if (error || !data) return null
+  return normalizeVet(data)
+}
 
-  return {
-    ...data,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    profile: Array.isArray(data.profile) ? (data.profile[0] as any) : (data.profile as any),
-    available_hours: data.available_hours as VetWithProfile['available_hours'],
-  } as VetWithProfile
+/** Returns the vet profile for the current logged-in vet (may or may not be verified). */
+export async function getMyVetProfile(
+  vetId: string,
+  client = supabaseClient
+): Promise<VeterinarianProfile | null> {
+  const { data, error } = await client
+    .from('veterinarians')
+    .select('*')
+    .eq('id', vetId)
+    .maybeSingle()
+  if (error || !data) return null
+  return data as VeterinarianProfile
+}
+
+/** Updates vet-specific profile data. */
+export async function updateVetProfile(
+  vetId: string,
+  updates: VetUpdateData
+): Promise<{ error: string | null }> {
+  const { error } = await supabaseClient
+    .from('veterinarians')
+    .update(updates)
+    .eq('id', vetId)
+  return { error: error?.message ?? null }
 }
 
 // ─── Availability ─────────────────────────────────────────────────────────────
@@ -292,3 +317,6 @@ export function formatAppointmentDateTime(isoString: string): string {
     hour12: true,
   })
 }
+
+// Suppress unused import warning
+void (undefined as unknown as Appointment)
