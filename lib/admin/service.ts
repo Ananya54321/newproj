@@ -119,7 +119,7 @@ export async function getPendingVets(client: SupabaseClient): Promise<PendingVet
       email,
       created_at,
       avatar_url,
-      veterinarians (
+      veterinarians!veterinarians_id_fkey (
         license_number,
         clinic_name,
         specialty,
@@ -130,7 +130,7 @@ export async function getPendingVets(client: SupabaseClient): Promise<PendingVet
     .eq('verification_status', 'pending')
     .order('created_at', { ascending: true })
 
-  if (error) return []
+  if (error) { console.error('getPendingVets error:', error); return [] }
 
   return ((data ?? []) as Array<{
     id: string
@@ -138,23 +138,22 @@ export async function getPendingVets(client: SupabaseClient): Promise<PendingVet
     email: string
     created_at: string
     avatar_url: string | null
-    veterinarians: {
-      license_number: string | null
-      clinic_name: string | null
-      specialty: string[] | null
-      years_experience: number | null
-    } | null
-  }>).map((row) => ({
-    id: row.id,
-    full_name: row.full_name,
-    email: row.email,
-    created_at: row.created_at,
-    avatar_url: row.avatar_url,
-    license_number: row.veterinarians?.license_number ?? null,
-    clinic_name: row.veterinarians?.clinic_name ?? null,
-    specialty: row.veterinarians?.specialty ?? null,
-    years_experience: row.veterinarians?.years_experience ?? null,
-  }))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any
+  }>).map((row) => {
+    const vet = row['veterinarians!veterinarians_id_fkey'] ?? row['veterinarians'] ?? null
+    return {
+      id: row.id,
+      full_name: row.full_name,
+      email: row.email,
+      created_at: row.created_at,
+      avatar_url: row.avatar_url,
+      license_number: vet?.license_number ?? null,
+      clinic_name: vet?.clinic_name ?? null,
+      specialty: vet?.specialty ?? null,
+      years_experience: vet?.years_experience ?? null,
+    }
+  })
 }
 
 export async function getPendingNGOs(client: SupabaseClient): Promise<PendingNGO[]> {
@@ -166,7 +165,7 @@ export async function getPendingNGOs(client: SupabaseClient): Promise<PendingNGO
       email,
       created_at,
       avatar_url,
-      ngos (
+      ngos!ngos_id_fkey (
         organization_name,
         registration_number,
         mission_statement
@@ -176,7 +175,7 @@ export async function getPendingNGOs(client: SupabaseClient): Promise<PendingNGO
     .eq('verification_status', 'pending')
     .order('created_at', { ascending: true })
 
-  if (error) return []
+  if (error) { console.error('getPendingNGOs error:', error); return [] }
 
   return ((data ?? []) as Array<{
     id: string
@@ -184,21 +183,21 @@ export async function getPendingNGOs(client: SupabaseClient): Promise<PendingNGO
     email: string
     created_at: string
     avatar_url: string | null
-    ngos: {
-      organization_name: string
-      registration_number: string | null
-      mission_statement: string | null
-    } | null
-  }>).map((row) => ({
-    id: row.id,
-    full_name: row.full_name,
-    email: row.email,
-    created_at: row.created_at,
-    avatar_url: row.avatar_url,
-    organization_name: row.ngos?.organization_name ?? null,
-    registration_number: row.ngos?.registration_number ?? null,
-    mission_statement: row.ngos?.mission_statement ?? null,
-  }))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any
+  }>).map((row) => {
+    const ngo = row['ngos!ngos_id_fkey'] ?? row['ngos'] ?? null
+    return {
+      id: row.id,
+      full_name: row.full_name,
+      email: row.email,
+      created_at: row.created_at,
+      avatar_url: row.avatar_url,
+      organization_name: ngo?.organization_name ?? null,
+      registration_number: ngo?.registration_number ?? null,
+      mission_statement: ngo?.mission_statement ?? null,
+    }
+  })
 }
 
 export async function getPendingStores(client: SupabaseClient): Promise<PendingStore[]> {
