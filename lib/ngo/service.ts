@@ -192,7 +192,7 @@ export async function createDonation(
       amount: data.amount,
       message: data.message ?? null,
       is_anonymous: data.is_anonymous ?? false,
-      status: 'pending',
+      status: 'completed',
     })
     .select()
     .single()
@@ -225,8 +225,8 @@ function normalizeDonation(raw: any): DonationWithRelations {
   return { ...raw, donor, ngo } as DonationWithRelations
 }
 
-export function formatDonationAmount(amount: number, currency = 'USD'): string {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount)
+export function formatDonationAmount(amount: number, currency = 'INR'): string {
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount)
 }
 
 // ─── NGO Events ───────────────────────────────────────────────────────────────

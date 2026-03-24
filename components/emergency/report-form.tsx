@@ -21,11 +21,13 @@ import {
   type EmergencyFormData,
 } from '@/lib/emergency/service'
 import { EMERGENCY_CATEGORY_CONFIG, type EmergencyCategory } from '@/lib/auth/types'
+import { useAuth } from '@/hooks/use-auth'
 
 const MAX_IMAGES = 4
 
 export function ReportForm() {
   const router = useRouter()
+  const { user } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [submitting, setSubmitting] = useState(false)
   const [imageFiles, setImageFiles] = useState<File[]>([])
@@ -78,31 +80,40 @@ export function ReportForm() {
       return
     }
 
-    setSubmitting(true)
-
-    // Create the report first to get an ID for image uploads
-    const { id, error } = await createEmergencyReport({ ...form, image_urls: [] })
-    if (error || !id) {
-      toast.error(error ?? 'Failed to create report.')
-      setSubmitting(false)
+    if (!user?.id) {
+      toast.error('You must be signed in to submit a report.')
       return
     }
 
-    // Upload images concurrently
-    const uploadResults = await Promise.all(imageFiles.map((f) => uploadReportImage(f, id)))
-    const imageUrls = uploadResults.filter((r) => r.url).map((r) => r.url as string)
+    setSubmitting(true)
+    try {
+      // Create the report first to get an ID for image uploads
+      const { id, error } = await createEmergencyReport({ ...form, image_urls: [] }, user.id)
+      if (error || !id) {
+        toast.error(error ?? 'Failed to create report.')
+        return
+      }
 
-    // Update the report with image URLs if any were uploaded
-    if (imageUrls.length > 0) {
-      const { supabaseClient } = await import('@/lib/supabase/client')
-      await supabaseClient
-        .from('emergency_reports')
-        .update({ image_urls: imageUrls })
-        .eq('id', id)
+      // Upload images concurrently
+      if (imageFiles.length > 0) {
+        const uploadResults = await Promise.all(imageFiles.map((f) => uploadReportImage(f, id)))
+        const imageUrls = uploadResults.filter((r) => r.url).map((r) => r.url as string)
+        if (imageUrls.length > 0) {
+          const { supabaseClient } = await import('@/lib/supabase/client')
+          await supabaseClient
+            .from('emergency_reports')
+            .update({ image_urls: imageUrls })
+            .eq('id', id)
+        }
+      }
+
+      toast.success('Emergency report submitted! Thank you for helping.')
+      router.push('/emergency')
+    } catch {
+      toast.error('An unexpected error occurred. Please try again.')
+    } finally {
+      setSubmitting(false)
     }
-
-    toast.success('Emergency report submitted! Thank you for helping.')
-    router.push('/emergency')
   }
 
   return (

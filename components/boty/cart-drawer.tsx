@@ -3,6 +3,7 @@
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { formatPrice } from "@/lib/marketplace/service"
 import {
   Drawer,
   DrawerClose,
@@ -97,7 +98,7 @@ export function CartDrawer() {
 
                   {/* Price */}
                   <div className="text-right">
-                    <p className="font-medium text-foreground">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-medium text-foreground">{formatPrice(item.price * item.quantity)}</p>
                   </div>
                 </div>
               ))}
@@ -111,15 +112,15 @@ export function CartDrawer() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-muted-foreground">
                 <span>Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between text-muted-foreground">
                 <span>Shipping</span>
-                <span>{shipping === 0 ? 'Free' : `$${shipping}`}</span>
+                <span>{shipping === 0 ? 'Free' : formatPrice(shipping)}</span>
               </div>
               <div className="flex justify-between text-base font-medium text-foreground pt-2 border-t border-border/50">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>{formatPrice(total)}</span>
               </div>
             </div>
 

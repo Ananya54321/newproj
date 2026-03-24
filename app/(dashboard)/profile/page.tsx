@@ -77,7 +77,7 @@ export default function ProfilePage() {
     <div className="min-h-screen">
       {/* Hero */}
       <div className="bg-card border-b border-border/50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               {profile.avatar_url ? (
@@ -99,8 +99,8 @@ export default function ProfilePage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-        <div className="max-w-xl space-y-5">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+        <div className="space-y-5">
           {/* Personal Information */}
           <form onSubmit={handleSave} className="bg-card rounded-2xl p-6 boty-shadow space-y-4">
             <h2 className="font-semibold text-foreground mb-1">Personal Information</h2>

@@ -26,6 +26,7 @@ export function useEmergencyRealtime(options: UseEmergencyOptions = {}) {
   const optionsRef = useRef(options)
   optionsRef.current = options
 
+  // Full load with spinner — used on mount and manual reload only
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -39,43 +40,49 @@ export function useEmergencyRealtime(options: UseEmergencyOptions = {}) {
     }
   }, [])
 
+  // Silent background refresh — no spinner, used by realtime + post-action
+  const silentRefresh = useCallback(async () => {
+    try {
+      const data = await getEmergencyReports(supabaseClient, optionsRef.current)
+      setReports(data)
+    } catch {
+      // silent — don't disrupt the UI on background errors
+    }
+  }, [])
+
   useEffect(() => {
     load()
 
-    // Subscribe to realtime changes
     const channel = supabaseClient
       .channel('emergency_reports_feed')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'emergency_reports' },
-        () => {
-          // Re-fetch on any change to keep joins accurate
-          load()
-        }
+        () => { silentRefresh() }
       )
       .subscribe()
 
     return () => {
       supabaseClient.removeChannel(channel)
     }
-  }, [load])
+  }, [load, silentRefresh])
 
   const changeStatus = useCallback(
     async (reportId: string, status: EmergencyStatus) => {
       const result = await updateReportStatus(reportId, status)
-      if (!result.error) await load()
+      if (!result.error) silentRefresh()
       return result
     },
-    [load]
+    [silentRefresh]
   )
 
   const submitReport = useCallback(
-    async (data: EmergencyFormData) => {
-      const result = await createEmergencyReport(data)
-      if (!result.error) await load()
+    async (data: EmergencyFormData, userId: string) => {
+      const result = await createEmergencyReport(data, userId)
+      if (!result.error) silentRefresh()
       return result
     },
-    [load]
+    [silentRefresh]
   )
 
   return { reports, loading, error, reload: load, changeStatus, submitReport }

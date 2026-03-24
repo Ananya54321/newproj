@@ -6,8 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Plus, Package, Pencil, Trash2, Store as StoreIcon, ExternalLink, Loader2 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import {
-  getOwnerStore,
-  getStoreProducts,
+  getOwnerStoreWithProducts,
   deleteProduct,
   createStore,
   type StoreFormData,
@@ -46,10 +45,10 @@ export default function StoreDashboardPage() {
     if (!user?.id) return
     setLoading(true)
     try {
-      const s = await getOwnerStore(user.id, supabaseClient)
-      setStore(s)
-      if (s) {
-        const p = await getStoreProducts(s.id, supabaseClient)
+      const result = await getOwnerStoreWithProducts(user.id, supabaseClient)
+      if (result) {
+        const { products: p, ...s } = result
+        setStore(s)
         setProducts(p)
       }
     } finally {

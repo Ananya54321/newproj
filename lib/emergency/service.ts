@@ -73,11 +73,13 @@ export async function getUserReports(
 }
 
 export async function createEmergencyReport(
-  formData: EmergencyFormData
+  formData: EmergencyFormData,
+  userId: string
 ): Promise<{ id: string | null; error: string | null }> {
   const { data, error } = await supabaseClient
     .from('emergency_reports')
     .insert({
+      reporter_id: userId,
       title: formData.title.trim(),
       description: formData.description?.trim() || null,
       location: formData.location.trim(),

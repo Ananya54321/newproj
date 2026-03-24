@@ -112,6 +112,25 @@ export async function getProductById(id: string, client: SupabaseClient = supaba
   return normalizeProduct(data)
 }
 
+export type StoreWithProducts = Store & { products: Product[] }
+
+export async function getOwnerStoreWithProducts(
+  ownerId: string,
+  client: SupabaseClient = supabaseClient
+): Promise<StoreWithProducts | null> {
+  const { data, error } = await client
+    .from('stores')
+    .select('*, products(*)')
+    .eq('owner_id', ownerId)
+    .maybeSingle()
+  if (error || !data) return null
+  const raw = data as Store & { products?: Product[] }
+  const products = (raw.products ?? []).sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )
+  return { ...raw, products }
+}
+
 export async function getStoreProducts(storeId: string, client: SupabaseClient = supabaseClient): Promise<Product[]> {
   const { data, error } = await client
     .from('products')
@@ -399,7 +418,7 @@ export async function getUserReviewForProduct(
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 export function formatPrice(price: number): string {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price)
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(price)
 }
 
 // Suppress unused import warnings

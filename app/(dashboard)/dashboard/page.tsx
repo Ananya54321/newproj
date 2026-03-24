@@ -19,5 +19,13 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single()
 
-  return <DashboardContent profile={profile as Profile | null} />
+  const p = profile as Profile | null
+
+  // Redirect professional roles to their own dashboards
+  if (p?.role === 'veterinarian') redirect('/vet-practice')
+  if (p?.role === 'ngo') redirect('/ngo')
+  if (p?.role === 'store_owner') redirect('/store')
+  if (p?.role === 'admin') redirect('/admin')
+
+  return <DashboardContent profile={p} />
 }

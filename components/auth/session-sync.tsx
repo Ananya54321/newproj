@@ -33,20 +33,32 @@ export function SessionSync() {
       lastEventRef.current = event
 
       if (event === 'SIGNED_OUT') {
-        // Redirect to login if the user was on a protected page
-        const isDashboard = window.location.pathname.startsWith('/dashboard')
-        const isOnboarding = window.location.pathname.startsWith('/onboarding')
-        if (isDashboard || isOnboarding) {
+        // Clear server-side cookies first, then redirect from any protected path
+        await fetch('/api/auth/session', { method: 'DELETE' })
+        const PROTECTED = [
+          '/dashboard', '/onboarding', '/pets', '/appointments', '/emergency',
+          '/orders', '/profile', '/store', '/ngo', '/admin', '/community',
+          '/ngos', '/marketplace', '/vets', '/checkout', '/vet-practice',
+        ]
+        const path = window.location.pathname
+        const isProtected = PROTECTED.some((p) => path === p || path.startsWith(p + '/'))
+        if (isProtected) {
           window.location.href = '/login'
         }
       } else if (event === 'TOKEN_REFRESHED' && session) {
-        // Persist the refreshed tokens server-side
+        // Pass tokens directly — avoids re-acquiring the auth lock mid-refresh
         syncedRef.current = false
-        await syncSessionWithServer()
+        await syncSessionWithServer({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+        })
         syncedRef.current = true
       } else if (event === 'SIGNED_IN' && session) {
         syncedRef.current = false
-        await syncSessionWithServer()
+        await syncSessionWithServer({
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+        })
         syncedRef.current = true
         router.refresh()
       }

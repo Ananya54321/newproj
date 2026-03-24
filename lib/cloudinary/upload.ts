@@ -32,9 +32,14 @@ export async function uploadToCloudinary(
   fd.append('upload_preset', uploadPreset)
   fd.append('folder', `furever/${folder}`)
 
+  // Use raw/upload for non-image files (PDFs, docs, etc.) so the original
+  // file is preserved and opens correctly in the browser.
+  const isImage = file.type.startsWith('image/')
+  const resourceType = isImage ? 'image' : 'raw'
+
   try {
     const res = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
       { method: 'POST', body: fd }
     )
 

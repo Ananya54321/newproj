@@ -67,35 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Initialise + subscribe to auth state changes
+  // Single auth listener — handles initial session + all future events.
+  // Deliberately avoids calling getSession() separately to prevent the
+  // concurrent-request lock contention in @supabase/ssr.
   useEffect(() => {
     mounted.current = true
 
-    // Bootstrap the session on mount
-    const bootstrap = async () => {
-      const {
-        data: { session },
-      } = await supabaseClient.auth.getSession()
-
-      if (!mounted.current) return
-
-      if (session?.user) {
-        const profile = await fetchProfile(session.user.id)
-        setState({
-          user: session.user,
-          profile,
-          session,
-          loading: false,
-          error: null,
-        })
-      } else {
-        setState((prev) => ({ ...prev, loading: false }))
-      }
-    }
-
-    bootstrap()
-
-    // Listen to future auth events
     const {
       data: { subscription },
     } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
@@ -113,18 +90,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (
+        event === 'INITIAL_SESSION' ||
         event === 'SIGNED_IN' ||
         event === 'TOKEN_REFRESHED' ||
         event === 'USER_UPDATED'
       ) {
         const profile = await fetchProfile(session.user.id)
-        setState({
-          user: session.user,
-          profile,
-          session,
-          loading: false,
-          error: null,
-        })
+        if (mounted.current) {
+          setState({
+            user: session.user,
+            profile,
+            session,
+            loading: false,
+            error: null,
+          })
+        }
       }
     })
 

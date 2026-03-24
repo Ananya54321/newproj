@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select'
 import { PetAvatar } from './pet-avatar'
 import { uploadPetAvatar, type PetFormData } from '@/lib/pets/service'
+import { uploadToCloudinary } from '@/lib/cloudinary/upload'
 import { SPECIES_OPTIONS } from '@/lib/auth/types'
 import type { Pet } from '@/lib/auth/types'
 
@@ -29,6 +30,7 @@ interface PetFormProps {
 export function PetForm({ initial, onSubmit, submitLabel = 'Save Pet', onSuccess }: PetFormProps) {
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
+  const [avatarUploading, setAvatarUploading] = useState(false)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(initial?.avatar_url ?? null)
 
@@ -42,11 +44,25 @@ export function PetForm({ initial, onSubmit, submitLabel = 'Save Pet', onSuccess
     avatar_url: initial?.avatar_url ?? null,
   })
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    setAvatarFile(file)
     setAvatarPreview(URL.createObjectURL(file))
+
+    if (initial?.id) {
+      // Editing an existing pet: store file, upload with pet ID on submit
+      setAvatarFile(file)
+    } else {
+      // New pet: upload to Cloudinary now, store URL in form data
+      setAvatarUploading(true)
+      const { url, error: uploadErr } = await uploadToCloudinary(file, 'pets')
+      setAvatarUploading(false)
+      if (uploadErr) {
+        toast.error(`Photo upload failed: ${uploadErr}`)
+      } else {
+        setForm((f) => ({ ...f, avatar_url: url }))
+      }
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,32 +73,36 @@ export function PetForm({ initial, onSubmit, submitLabel = 'Save Pet', onSuccess
     }
 
     setSubmitting(true)
-    let avatarUrl = form.avatar_url
+    try {
+      let avatarUrl = form.avatar_url
 
-    // Upload avatar if a new file was selected
-    if (avatarFile && initial?.id) {
-      const { url, error: uploadErr } = await uploadPetAvatar(avatarFile, initial.id)
-      if (uploadErr) {
-        toast.error(`Avatar upload failed: ${uploadErr}`)
-        setSubmitting(false)
-        return
+      // For existing pets: upload avatar file with pet ID (updates record too)
+      if (avatarFile && initial?.id) {
+        const { url, error: uploadErr } = await uploadPetAvatar(avatarFile, initial.id)
+        if (uploadErr) {
+          toast.error(`Avatar upload failed: ${uploadErr}`)
+          return
+        }
+        avatarUrl = url
       }
-      avatarUrl = url
-    }
 
-    const result = await onSubmit({ ...form, avatar_url: avatarUrl })
+      const result = await onSubmit({ ...form, avatar_url: avatarUrl })
 
-    if (result.error) {
-      toast.error(result.error)
-    } else {
-      toast.success(initial ? 'Pet updated!' : 'Pet added!')
-      if (onSuccess) {
-        onSuccess()
+      if (result.error) {
+        toast.error(result.error)
       } else {
-        router.push('/pets')
+        toast.success(initial ? 'Pet updated!' : 'Pet added!')
+        if (onSuccess) {
+          onSuccess()
+        } else {
+          router.push('/pets')
+        }
       }
+    } catch {
+      toast.error('An unexpected error occurred. Please try again.')
+    } finally {
+      setSubmitting(false)
     }
-    setSubmitting(false)
   }
 
   return (
@@ -105,12 +125,10 @@ export function PetForm({ initial, onSubmit, submitLabel = 'Save Pet', onSuccess
             accept="image/*"
             onChange={handleAvatarChange}
             className="mt-1.5 text-sm"
-            disabled={!initial?.id}
+            disabled={avatarUploading || submitting}
           />
-          {!initial?.id && (
-            <p className="text-xs text-muted-foreground mt-1">
-              You can upload a photo after adding the pet.
-            </p>
+          {avatarUploading && (
+            <p className="text-xs text-muted-foreground mt-1">Uploading photo…</p>
           )}
         </div>
       </div>
@@ -208,8 +226,8 @@ export function PetForm({ initial, onSubmit, submitLabel = 'Save Pet', onSuccess
       </div>
 
       <div className="flex gap-3 pt-2">
-        <Button type="submit" disabled={submitting} className="flex-1 sm:flex-none sm:min-w-32">
-          {submitting ? 'Saving...' : submitLabel}
+        <Button type="submit" disabled={submitting || avatarUploading} className="flex-1 sm:flex-none sm:min-w-32">
+          {submitting ? 'Saving...' : avatarUploading ? 'Uploading photo…' : submitLabel}
         </Button>
         <Button
           type="button"

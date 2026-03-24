@@ -189,11 +189,13 @@ export async function getAvailableSlots(
 // ─── Appointments ─────────────────────────────────────────────────────────────
 
 export async function createAppointment(
-  data: AppointmentFormData
+  data: AppointmentFormData,
+  userId: string
 ): Promise<{ id: string | null; error: string | null }> {
   const { data: created, error } = await supabaseClient
     .from('appointments')
     .insert({
+      user_id: userId,
       vet_id: data.vet_id,
       pet_id: data.pet_id,
       scheduled_at: data.scheduled_at,

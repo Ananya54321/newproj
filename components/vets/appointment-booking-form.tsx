@@ -19,6 +19,7 @@ import { getAvailableSlots, createAppointment } from '@/lib/vets/service'
 import { CONSULTATION_TYPE_CONFIG, type ConsultationType, type VetWithProfile } from '@/lib/auth/types'
 import type { Pet } from '@/lib/auth/types'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/hooks/use-auth'
 
 interface AppointmentBookingFormProps {
   vet: VetWithProfile
@@ -27,6 +28,7 @@ interface AppointmentBookingFormProps {
 
 export function AppointmentBookingForm({ vet, pets }: AppointmentBookingFormProps) {
   const router = useRouter()
+  const { user } = useAuth()
   const [selectedDate, setSelectedDate] = useState<Date | undefined>()
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [slots, setSlots] = useState<string[]>([])
@@ -60,6 +62,12 @@ export function AppointmentBookingForm({ vet, pets }: AppointmentBookingFormProp
     const dt = new Date(selectedDate)
     dt.setHours(h, m, 0, 0)
 
+    if (!user?.id) {
+      toast.error('You must be signed in to book an appointment.')
+      setSubmitting(false)
+      return
+    }
+
     const { id, error } = await createAppointment({
       vet_id: vet.id,
       pet_id: petId,
@@ -67,7 +75,7 @@ export function AppointmentBookingForm({ vet, pets }: AppointmentBookingFormProp
       consultation_type: consultationType,
       duration_minutes: 30,
       notes: notes || undefined,
-    })
+    }, user.id)
 
     if (error) {
       toast.error(error)

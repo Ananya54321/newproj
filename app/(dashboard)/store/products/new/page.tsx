@@ -62,13 +62,10 @@ export default function NewProductPage() {
         return
       }
 
-      // Upload images
+      // Upload images in parallel
       if (imageFiles.length > 0) {
-        const urls: string[] = []
-        for (const file of imageFiles) {
-          const { url } = await uploadProductImage(file, product.id)
-          if (url) urls.push(url)
-        }
+        const results = await Promise.all(imageFiles.map((f) => uploadProductImage(f, product.id)))
+        const urls = results.map((r) => r.url).filter(Boolean) as string[]
         if (urls.length > 0) {
           await supabaseClient.from('products').update({ images: urls }).eq('id', product.id)
         }

@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: Props) {
   const { slug } = await params
   const supabase = await createServerSupabaseClient()
   const data = await getProfileBySlug(slug, supabase)
-  if (!data) return { title: 'Profile Not Found' }
+  if (!data || data.profile.role === 'admin') return { title: 'Profile Not Found' }
   const name = data.profile.full_name ?? slug
   return {
     title: `${name} — Furever`,
@@ -26,7 +26,7 @@ export default async function PublicProfilePage({ params }: Props) {
   const supabase = await createServerSupabaseClient()
   const data = await getProfileBySlug(slug, supabase)
 
-  if (!data) notFound()
+  if (!data || data.profile.role === 'admin') notFound()
 
   const { profile, vet, ngo, store } = data
   const name = profile.full_name ?? slug

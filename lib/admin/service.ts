@@ -75,7 +75,7 @@ export async function getAdminStats(client: SupabaseClient): Promise<AdminStats>
     client.from('profiles').select('*', { count: 'exact', head: true }),
     client.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'veterinarian').eq('verification_status', 'pending'),
     client.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'ngo').eq('verification_status', 'pending'),
-    client.from('stores').select('*', { count: 'exact', head: true }).eq('is_active', false).is('verified_at', null),
+    client.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'store_owner').eq('verification_status', 'pending'),
     client.from('emergency_reports').select('*', { count: 'exact', head: true }),
     client.from('emergency_reports').select('*', { count: 'exact', head: true }).in('status', ['open', 'in_progress']),
     client.from('communities').select('*', { count: 'exact', head: true }),
@@ -201,47 +201,44 @@ export async function getPendingNGOs(client: SupabaseClient): Promise<PendingNGO
 }
 
 export async function getPendingStores(client: SupabaseClient): Promise<PendingStore[]> {
+  // Query from profiles (like vets/NGOs) so we catch store_owner accounts
+  // even if their store row hasn't been created yet.
   const { data, error } = await client
-    .from('stores')
+    .from('profiles')
     .select(`
       id,
-      name,
-      slug,
-      owner_id,
+      full_name,
+      email,
       created_at,
-      description,
-      profiles!stores_owner_id_fkey (
-        full_name,
-        email
+      avatar_url,
+      stores (
+        id,
+        name,
+        slug,
+        description
       )
     `)
-    .eq('is_active', false)
-    .is('verified_at', null)
+    .eq('role', 'store_owner')
+    .eq('verification_status', 'pending')
     .order('created_at', { ascending: true })
 
-  if (error) return []
+  if (error) { console.error('getPendingStores error:', error); return [] }
 
-  return ((data ?? []) as Array<{
-    id: string
-    name: string
-    slug: string | null
-    owner_id: string
-    created_at: string
-    description: string | null
-    profiles: {
-      full_name: string | null
-      email: string
-    } | null
-  }>).map((row) => ({
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    owner_id: row.owner_id,
-    owner_name: row.profiles?.full_name ?? null,
-    owner_email: row.profiles?.email ?? null,
-    created_at: row.created_at,
-    description: row.description,
-  }))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return ((data ?? []) as any[]).map((row) => {
+    // stores is an array (one-to-many), take the first
+    const store = Array.isArray(row.stores) ? row.stores[0] ?? null : (row.stores ?? null)
+    return {
+      id: row.id,          // profile/owner ID — used for approve/reject actions
+      name: store?.name ?? 'No store name yet',
+      slug: store?.slug ?? null,
+      owner_id: row.id,
+      owner_name: row.full_name,
+      owner_email: row.email,
+      created_at: row.created_at,
+      description: store?.description ?? null,
+    } satisfies PendingStore
+  })
 }
 
 // ─── Approval actions ─────────────────────────────────────────────────────────
@@ -337,64 +334,149 @@ export async function rejectNGO(
 }
 
 export async function approveStore(
-  storeId: string,
+  ownerId: string,
   adminId: string,
   client: SupabaseClient
 ): Promise<{ error: string | null }> {
   const now = new Date().toISOString()
+  void adminId
 
-  const { error } = await client
+  // Update profile first (always present)
+  const { error: profileError } = await client
+    .from('profiles')
+    .update({ verification_status: 'approved' })
+    .eq('id', ownerId)
+
+  if (profileError) return { error: profileError.message }
+
+  // Activate store if one exists
+  await client
     .from('stores')
     .update({ is_active: true, verified_at: now })
-    .eq('id', storeId)
+    .eq('owner_id', ownerId)
 
-  if (error) return { error: error.message }
-
-  // Also update the owner's verification_status
-  const { data: store } = await client
-    .from('stores')
-    .select('owner_id')
-    .eq('id', storeId)
-    .single()
-
-  if (store?.owner_id) {
-    await client
-      .from('profiles')
-      .update({ verification_status: 'approved' })
-      .eq('id', store.owner_id)
-  }
-
-  void adminId
   return { error: null }
 }
 
 export async function rejectStore(
-  storeId: string,
+  ownerId: string,
   reason: string,
   client: SupabaseClient
 ): Promise<{ error: string | null }> {
-  const { error } = await client
+  // Update profile (always present)
+  const { error: profileError } = await client
+    .from('profiles')
+    .update({ verification_status: 'rejected' })
+    .eq('id', ownerId)
+
+  if (profileError) return { error: profileError.message }
+
+  // Update store rejection reason if store exists
+  await client
     .from('stores')
     .update({ rejection_reason: reason })
-    .eq('id', storeId)
-
-  if (error) return { error: error.message }
-
-  // Also update the owner's verification_status
-  const { data: store } = await client
-    .from('stores')
-    .select('owner_id')
-    .eq('id', storeId)
-    .single()
-
-  if (store?.owner_id) {
-    await client
-      .from('profiles')
-      .update({ verification_status: 'rejected' })
-      .eq('id', store.owner_id)
-  }
+    .eq('owner_id', ownerId)
 
   return { error: null }
+}
+
+// ─── User detail (for admin review) ──────────────────────────────────────────
+
+export interface AdminUserDetail {
+  id: string
+  full_name: string | null
+  email: string
+  role: string
+  verification_status: string | null
+  created_at: string
+  avatar_url: string | null
+  bio: string | null
+  phone: string | null
+  slug: string | null
+  vet: {
+    license_number: string | null
+    license_document_url: string | null
+    resume_url: string | null
+    specialty: string[] | null
+    years_experience: number | null
+    clinic_name: string | null
+    clinic_address: string | null
+    consultation_fee: number | null
+    bio: string | null
+    rejection_reason: string | null
+  } | null
+  ngo: {
+    organization_name: string | null
+    registration_number: string | null
+    registration_document_url: string | null
+    mission_statement: string | null
+    website_url: string | null
+    address: string | null
+    accepts_donations: boolean
+    rejection_reason: string | null
+  } | null
+  store: {
+    id: string
+    name: string
+    slug: string | null
+    description: string | null
+    logo_url: string | null
+    address: string | null
+    rejection_reason: string | null
+  } | null
+}
+
+export async function getAdminUserDetail(
+  userId: string,
+  client: SupabaseClient
+): Promise<AdminUserDetail | null> {
+  const { data, error } = await client
+    .from('profiles')
+    .select(`
+      id, full_name, email, role, verification_status, created_at,
+      avatar_url, bio, phone, slug,
+      veterinarians!veterinarians_id_fkey (
+        license_number, license_document_url, resume_url,
+        specialty, years_experience, clinic_name, clinic_address,
+        consultation_fee, bio, rejection_reason
+      ),
+      ngos!ngos_id_fkey (
+        organization_name, registration_number, registration_document_url,
+        mission_statement, website_url, address, accepts_donations, rejection_reason
+      ),
+      stores (
+        id, name, slug, description, logo_url, address, rejection_reason
+      )
+    `)
+    .eq('id', userId)
+    .single()
+
+  if (error || !data) return null
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const r = data as any
+  const vetRaw = r['veterinarians!veterinarians_id_fkey'] ?? r.veterinarians ?? null
+  const vet = Array.isArray(vetRaw) ? vetRaw[0] ?? null : vetRaw
+  const ngoRaw = r['ngos!ngos_id_fkey'] ?? r.ngos ?? null
+  const ngo = Array.isArray(ngoRaw) ? ngoRaw[0] ?? null : ngoRaw
+  const storeArr = Array.isArray(r.stores) ? r.stores : (r.stores ? [r.stores] : [])
+  const store = storeArr[0] ?? null
+
+  return {
+    id: r.id,
+    full_name: r.full_name,
+    email: r.email,
+    role: r.role,
+    verification_status: r.verification_status,
+    created_at: r.created_at,
+    avatar_url: r.avatar_url,
+    bio: r.bio,
+    phone: r.phone,
+    slug: r.slug,
+    vet: vet ?? null,
+    ngo: ngo ?? null,
+    store: store ?? null,
+  }
 }
 
 // ─── Community management ─────────────────────────────────────────────────────

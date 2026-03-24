@@ -195,21 +195,29 @@ export async function getCurrentUser(): Promise<AuthResponse> {
 
 // ─── Session sync (client → server cookies) ───────────────────────────────────
 
-export async function syncSessionWithServer(): Promise<void> {
+/**
+ * Syncs the current session tokens to server-side cookies.
+ * Pass `tokens` directly when you already have the session (e.g. from an auth
+ * event callback) to avoid acquiring the auth lock again mid-refresh.
+ */
+export async function syncSessionWithServer(
+  tokens?: { access_token: string; refresh_token: string }
+): Promise<void> {
   try {
-    const {
-      data: { session },
-    } = await supabaseClient.auth.getSession()
+    let access_token = tokens?.access_token
+    let refresh_token = tokens?.refresh_token
 
-    if (!session) return
+    if (!access_token || !refresh_token) {
+      const { data: { session } } = await supabaseClient.auth.getSession()
+      if (!session) return
+      access_token = session.access_token
+      refresh_token = session.refresh_token
+    }
 
     await fetch('/api/auth/session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        access_token: session.access_token,
-        refresh_token: session.refresh_token,
-      }),
+      body: JSON.stringify({ access_token, refresh_token }),
     })
   } catch (err) {
     console.error('Failed to sync session with server:', err)

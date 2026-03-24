@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Package, CheckCircle, Loader2 } from 'lucide-react'
+import { Package, CheckCircle, Loader2, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { OrderCard } from '@/components/marketplace/order-card'
 import { getUserOrders, getOwnerStore, getStoreOrders } from '@/lib/marketplace/service'
@@ -19,10 +19,12 @@ export default function OrdersPage() {
   const [storeOrders, setStoreOrders] = useState<OrderWithItems[]>([])
   const [store, setStore] = useState<Store | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const loadOrders = useCallback(async () => {
     if (!user?.id) return
     setLoading(true)
+    setError(null)
     try {
       const [orders, ownerStore] = await Promise.all([
         getUserOrders(user.id, supabaseClient),
@@ -34,6 +36,8 @@ export default function OrdersPage() {
         const sOrders = await getStoreOrders(ownerStore.id, supabaseClient)
         setStoreOrders(sOrders)
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load orders')
     } finally {
       setLoading(false)
     }
@@ -45,6 +49,21 @@ export default function OrdersPage() {
     return (
       <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
         <Loader2 className="w-5 h-5 animate-spin" /> Loading orders…
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-20 gap-3 text-destructive">
+        <AlertCircle className="w-5 h-5 shrink-0" />
+        <span className="text-sm">{error}</span>
+        <button
+          onClick={loadOrders}
+          className="text-sm underline text-muted-foreground hover:text-foreground"
+        >
+          Retry
+        </button>
       </div>
     )
   }

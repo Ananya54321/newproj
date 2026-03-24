@@ -73,8 +73,8 @@ export default function EditNgoEventPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-        <div className="max-w-xl bg-card rounded-2xl p-6 boty-shadow">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+        <div className="bg-card rounded-2xl p-6 boty-shadow">
           <EventForm
             initial={{
               title: event.title,

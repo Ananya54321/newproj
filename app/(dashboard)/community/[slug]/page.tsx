@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, notFound } from 'next/navigation'
-import { Plus, Users, FileText, Loader2, PawPrint, Clock, TrendingUp, Flame, Calendar } from 'lucide-react'
+import Link from 'next/link'
+import { Plus, Users, FileText, Loader2, PawPrint, Clock, TrendingUp, Flame, Calendar, ArrowLeft } from 'lucide-react'
 import {
   getCommunityBySlug,
   getPosts,
@@ -97,9 +98,20 @@ export default function CommunityPage() {
 
   return (
     <div className="min-h-screen">
+      {/* Back link */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
+        <Link
+          href="/community"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          All Communities
+        </Link>
+      </div>
+
       {/* Banner */}
       <div
-        className="h-44 bg-primary/10"
+        className="h-44 bg-primary/10 mt-3"
         style={
           community?.banner_url
             ? { backgroundImage: `url(${community.banner_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }

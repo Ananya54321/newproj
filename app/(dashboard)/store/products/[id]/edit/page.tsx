@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Loader2, Upload, X } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
-import { getStoreProducts, getOwnerStore, updateProduct, uploadProductImage, type ProductFormData } from '@/lib/marketplace/service'
+import { getProductById, getOwnerStore, updateProduct, uploadProductImage, type ProductFormData } from '@/lib/marketplace/service'
 import { PRODUCT_CATEGORIES } from '@/lib/auth/types'
 import { supabaseClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -34,11 +34,11 @@ export default function EditProductPage() {
   useEffect(() => {
     if (!user?.id || !id) return
     const fetch = async () => {
-      const store = await getOwnerStore(user.id, supabaseClient)
-      if (!store) { setLoading(false); return }
-      const products = await getStoreProducts(store.id, supabaseClient)
-      const p = products.find((p) => p.id === id)
-      if (p) {
+      const [p, store] = await Promise.all([
+        getProductById(id, supabaseClient),
+        getOwnerStore(user.id, supabaseClient),
+      ])
+      if (p && store && p.store_id === store.id) {
         setProduct(p)
         setName(p.name)
         setDescription(p.description ?? '')
@@ -73,10 +73,9 @@ export default function EditProductPage() {
       let images = [...existingImages]
 
       if (newImageFiles.length > 0) {
-        for (const file of newImageFiles) {
-          const { url } = await uploadProductImage(file, id)
-          if (url) images.push(url)
-        }
+        const results = await Promise.all(newImageFiles.map((f) => uploadProductImage(f, id)))
+        const newUrls = results.map((r) => r.url).filter(Boolean) as string[]
+        images = [...images, ...newUrls]
       }
 
       const data: Partial<ProductFormData> = {

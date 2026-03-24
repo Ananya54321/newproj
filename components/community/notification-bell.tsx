@@ -1,20 +1,24 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Bell } from 'lucide-react'
+import { Bell, CheckCheck, Inbox } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
-import { getNotifications, markNotificationRead, markAllNotificationsRead } from '@/lib/community/service'
+import { getNotifications, markNotificationRead, markAllNotificationsRead, formatPostDate } from '@/lib/community/service'
 import { supabaseClient } from '@/lib/supabase/client'
 import type { Notification } from '@/lib/auth/types'
-import { formatPostDate } from '@/lib/community/service'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 
 export function NotificationBell() {
   const { user } = useAuth()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [open, setOpen] = useState(false)
-  const panelRef = useRef<HTMLDivElement>(null)
 
   const unreadCount = notifications.filter((n) => !n.is_read).length
 
@@ -22,7 +26,6 @@ export function NotificationBell() {
     if (!user?.id) return
     getNotifications(user.id).then(setNotifications).catch(console.error)
 
-    // Real-time subscription
     const channel = supabaseClient
       .channel(`notifications:${user.id}`)
       .on(
@@ -42,19 +45,6 @@ export function NotificationBell() {
     return () => { supabaseClient.removeChannel(channel) }
   }, [user?.id])
 
-  // Close panel on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    if (open) document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
-
-  const handleOpen = () => setOpen((o) => !o)
-
   const handleMarkRead = async (n: Notification) => {
     if (n.is_read) return
     setNotifications((prev) => prev.map((x) => x.id === n.id ? { ...x, is_read: true } : x))
@@ -70,10 +60,10 @@ export function NotificationBell() {
   if (!user) return null
 
   return (
-    <div className="relative" ref={panelRef}>
+    <>
       <button
         type="button"
-        onClick={handleOpen}
+        onClick={() => setOpen(true)}
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
         className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted boty-transition"
       >
@@ -85,37 +75,49 @@ export function NotificationBell() {
         )}
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-card border border-border/60 rounded-2xl boty-shadow z-50 overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border/60">
-            <span className="font-semibold text-sm text-foreground">Notifications</span>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-sm p-0 flex flex-col">
+          <SheetHeader className="px-5 py-4 border-b border-border/60 flex-row items-center justify-between space-y-0">
+            <SheetTitle className="font-serif text-xl">Notifications</SheetTitle>
             {unreadCount > 0 && (
               <button
                 type="button"
                 onClick={handleMarkAll}
-                className="text-xs text-primary hover:underline boty-transition"
+                className="flex items-center gap-1.5 text-xs text-primary hover:underline boty-transition"
               >
+                <CheckCheck className="w-3.5 h-3.5" />
                 Mark all read
               </button>
             )}
-          </div>
+          </SheetHeader>
 
-          {/* List */}
-          <div className="max-h-96 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="py-10 text-center text-sm text-muted-foreground">
-                No notifications yet
+              <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-6">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                  <Inbox className="w-6 h-6 text-muted-foreground/50" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">All caught up</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">No notifications yet</p>
+                </div>
               </div>
             ) : (
-              notifications.map((n) => (
-                <NotificationItem key={n.id} notification={n} onRead={handleMarkRead} onClose={() => setOpen(false)} />
-              ))
+              <div className="divide-y divide-border/40">
+                {notifications.map((n) => (
+                  <NotificationItem
+                    key={n.id}
+                    notification={n}
+                    onRead={handleMarkRead}
+                    onClose={() => setOpen(false)}
+                  />
+                ))}
+              </div>
             )}
           </div>
-        </div>
-      )}
-    </div>
+        </SheetContent>
+      </Sheet>
+    </>
   )
 }
 
@@ -128,22 +130,26 @@ function NotificationItem({
   onRead: (n: Notification) => void
   onClose: () => void
 }) {
-  const inner = (
+  const content = (
     <div
       className={cn(
-        'flex items-start gap-3 px-4 py-3 hover:bg-muted/50 boty-transition cursor-pointer',
+        'flex items-start gap-3 px-5 py-4 hover:bg-muted/50 boty-transition cursor-pointer',
         !n.is_read && 'bg-primary/5'
       )}
       onClick={() => onRead(n)}
     >
-      <div className={cn(
-        'w-2 h-2 rounded-full mt-1.5 shrink-0',
-        n.is_read ? 'bg-transparent' : 'bg-primary'
-      )} />
+      <div
+        className={cn(
+          'w-2 h-2 rounded-full mt-1.5 shrink-0',
+          n.is_read ? 'bg-transparent' : 'bg-primary'
+        )}
+      />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-foreground leading-tight">{n.title}</p>
-        {n.body && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>}
-        <p className="text-xs text-muted-foreground mt-1">{formatPostDate(n.created_at)}</p>
+        {n.body && (
+          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>
+        )}
+        <p className="text-xs text-muted-foreground mt-1.5">{formatPostDate(n.created_at)}</p>
       </div>
     </div>
   )
@@ -151,9 +157,9 @@ function NotificationItem({
   if (n.link) {
     return (
       <Link href={n.link} onClick={onClose}>
-        {inner}
+        {content}
       </Link>
     )
   }
-  return inner
+  return content
 }
