@@ -83,7 +83,6 @@ export default function EditNgoEventPage() {
               location: event.location,
               event_date: event.event_date,
               image_url: event.image_url,
-              registration_url: event.registration_url,
               goal_amount: event.goal_amount,
             }}
             onSubmit={handleSubmit}

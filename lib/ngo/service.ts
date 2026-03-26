@@ -341,20 +341,6 @@ export async function unregisterFromNgoEvent(
   return { error: error?.message ?? null }
 }
 
-export async function checkNgoEventRegistration(
-  eventId: string,
-  userId: string,
-  client: SupabaseClient = supabaseClient
-): Promise<boolean> {
-  const { data } = await client
-    .from('ngo_event_registrations')
-    .select('id')
-    .eq('event_id', eventId)
-    .eq('user_id', userId)
-    .maybeSingle()
-  return !!data
-}
-
 /** Returns a map of eventId → registration count for the given NGO's events. */
 export async function getNgoEventRegistrationCounts(
   ngoId: string,
