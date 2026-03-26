@@ -18,6 +18,7 @@ import {
   Stethoscope,
   Store,
   Building2,
+  MessageSquare,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
@@ -40,6 +41,7 @@ const NAV_BY_ROLE: Record<string, NavItem[]> = {
     { href: '/orders',       label: 'My Orders',       icon: Package },
     { href: '/community',    label: 'Community',       icon: Users },
     { href: '/ngos',         label: 'NGOs & Rescues',  icon: Heart },
+    { href: '/chat',         label: 'Chat',            icon: MessageSquare },
     { href: '/profile',      label: 'Profile',         icon: User },
   ],
   store_owner: [

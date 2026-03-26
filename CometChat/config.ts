@@ -1,0 +1,4 @@
+export const COMETCHAT_CONSTANTS = {
+  APP_ID: process.env.NEXT_PUBLIC_COMETCHAT_APP_ID!,
+  REGION: process.env.NEXT_PUBLIC_COMETCHAT_REGION!,
+}
