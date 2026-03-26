@@ -151,8 +151,7 @@ export async function getNGODonations(
     .from('donations')
     .select(`
       *,
-      donor:profiles!donations_donor_id_fkey(id, full_name, avatar_url),
-      ngo:profiles!donations_ngo_id_fkey(id, full_name)
+      donor:profiles!donations_donor_id_fkey(id, full_name, avatar_url)
     `)
     .eq('ngo_id', ngoId)
     .order('created_at', { ascending: false })
@@ -168,8 +167,7 @@ export async function getUserDonations(
     .from('donations')
     .select(`
       *,
-      donor:profiles!donations_donor_id_fkey(id, full_name, avatar_url),
-      ngo:profiles!donations_ngo_id_fkey(id, full_name)
+      donor:profiles!donations_donor_id_fkey(id, full_name, avatar_url)
     `)
     .eq('donor_id', userId)
     .order('created_at', { ascending: false })

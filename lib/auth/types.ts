@@ -380,7 +380,7 @@ export interface Donation {
 
 export interface DonationWithRelations extends Donation {
   donor: Pick<Profile, 'id' | 'full_name' | 'avatar_url'>
-  ngo: Pick<Profile, 'id' | 'full_name'>
+  ngo?: Pick<Profile, 'id' | 'full_name'> | null
 }
 
 // ─── Phase 2-4 domain models ─────────────────────────────────────────────────

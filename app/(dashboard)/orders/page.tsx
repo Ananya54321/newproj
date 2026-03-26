@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { Suspense, useEffect, useState, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Package, CheckCircle, Loader2, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
@@ -10,6 +10,14 @@ import { supabaseClient } from '@/lib/supabase/client'
 import type { OrderWithItems, Store } from '@/lib/auth/types'
 
 export default function OrdersPage() {
+  return (
+    <Suspense>
+      <OrdersContent />
+    </Suspense>
+  )
+}
+
+function OrdersContent() {
   const { user, profile } = useAuth()
   const searchParams = useSearchParams()
   const success = searchParams.get('success') === 'true'
