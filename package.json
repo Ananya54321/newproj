@@ -9,6 +9,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@cometchat/calls-sdk-javascript": "^4.2.5",
+    "@cometchat/chat-uikit-react": "6.3.11",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",

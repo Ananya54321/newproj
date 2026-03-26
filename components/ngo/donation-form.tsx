@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 
-const PRESET_AMOUNTS = [5, 10, 25, 50, 100]
+const PRESET_AMOUNTS = [100, 250, 500, 1000, 2500]
 
 interface DonationFormProps {
   ngoId: string
@@ -37,7 +37,7 @@ export function DonationForm({ ngoId, ngoName, onSuccess }: DonationFormProps) {
     if (error) {
       toast.error(error)
     } else {
-      toast.success(`Thank you for donating $${amount} to ${ngoName}!`)
+      toast.success(`Thank you for donating ₹${amount} to ${ngoName}!`)
       setAmount('')
       setMessage('')
       onSuccess?.()
@@ -66,7 +66,7 @@ export function DonationForm({ ngoId, ngoName, onSuccess }: DonationFormProps) {
                   : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'
               }`}
             >
-              ${preset}
+              ₹{preset.toLocaleString('en-IN')}
             </button>
           ))}
         </div>
@@ -75,10 +75,10 @@ export function DonationForm({ ngoId, ngoName, onSuccess }: DonationFormProps) {
       {/* Custom amount */}
       <div>
         <label className="block text-sm font-medium text-foreground mb-1.5">
-          Or enter custom amount (USD)
+          Or enter custom amount (INR)
         </label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">$</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
           <input
             type="number"
             min="1"
@@ -127,7 +127,7 @@ export function DonationForm({ ngoId, ngoName, onSuccess }: DonationFormProps) {
       <Button type="submit" disabled={submitting || !amount} className="w-full">
         {submitting
           ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Processing…</>
-          : <><Heart className="w-4 h-4 mr-2" />Donate {amount ? `$${amount}` : ''}</>}
+          : <><Heart className="w-4 h-4 mr-2" />Donate {amount ? `₹${Number(amount).toLocaleString('en-IN')}` : ''}</>}
       </Button>
     </form>
   )

@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import Image from "next/image"
 import { AlertCircle, Stethoscope, ShoppingBag, Users } from "lucide-react"
 
 const features = [
@@ -110,7 +109,7 @@ export function FeatureSection() {
               playsInline
               className="absolute inset-0 w-full h-full object-cover"
             >
-              <source src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/c4baaf67-b900-4b90-af2a-daf25a5a4b78-5un5eTbj9Z67qEtEdsQwlYrte9dZM9.mp4" type="video/mp4" />
+              <source src="/unified-pet-care.mp4" type="video/mp4" />
             </video>
             {/* Overlay Card */}
             <div className="absolute bottom-8 left-8 right-8 bg-white p-6 shadow-lg rounded-xl">
@@ -137,13 +136,17 @@ export function FeatureSection() {
             }`}
             style={{ transitionDelay: '100ms' }}
           >
-            {/* Background Image */}
-            <Image
-              src="/images/products/0ed61900-dd29-4dd2-bc2d-abc2db54c352.png"
-              alt="Natural ingredients"
-              fill
-              className="object-cover"
-            />
+            {/* Background Video */}
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            >
+              <source src="/emergency.mp4" type="video/mp4" />
+            </video>
+            <div className="absolute inset-0 bg-black/40" />
 
             
             <div className="relative z-10">
@@ -222,7 +225,7 @@ export function FeatureSection() {
               playsInline
               className="absolute inset-0 w-full h-full object-cover"
             >
-              <source src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/0c826034-d4f2-4d4f-8e99-50e94e4ce63f-dG1CBOjR36xFPTbhcROrHbomGXtlTQ.mp4" type="video/mp4" />
+              <source src="/cat-video.mp4" type="video/mp4" />
             </video>
           </div>
 

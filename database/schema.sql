@@ -251,7 +251,7 @@ create table public.donations (
   donor_id   uuid        references public.profiles(id) on delete set null,
   ngo_id     uuid        not null references public.ngos(id) on delete cascade,
   amount     numeric(12,2) not null,
-  currency   char(3)     not null default 'USD',
+  currency   char(3)     not null default 'INR',
   message    text,
   created_at timestamptz not null default now()
 );

@@ -5,7 +5,7 @@ import { updateVetProfile } from '@/lib/vets/service'
 import { ScheduleEditor, DEFAULT_HOURS } from '@/components/vet/schedule-editor'
 import type { DayHours } from '@/components/vet/schedule-editor'
 import { toast } from 'sonner'
-import { Calendar, DollarSign, Loader2, ArrowLeft } from 'lucide-react'
+import { Calendar, IndianRupee, Loader2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
@@ -86,10 +86,10 @@ export function ScheduleClient({ userId, initialAvailableHours, initialConsultat
 
             <div>
               <label className="block text-sm font-medium text-foreground mb-1.5">
-                Consultation Fee (USD)
+                Consultation Fee (INR)
               </label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="number"
                   min="0"

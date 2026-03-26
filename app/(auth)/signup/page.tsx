@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { SignupForm } from '@/components/auth/signup-form'
+import DogLoader2 from '@/components/dog-loader2'
 
 export const metadata: Metadata = {
   title: 'Join Furever',
@@ -12,13 +13,10 @@ export default function SignupPage() {
     <div className="min-h-screen flex flex-row-reverse">
       {/* ── Right panel — hero ────────────────────────────────────────── */}
       <div className="hidden lg:flex lg:w-[48%] xl:w-[45%] relative flex-col justify-end p-10 bg-[#C4AA87] overflow-hidden">
-        {/* Background image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-70"
-          style={{ backgroundImage: "url('/references/signup.png')" }}
-          aria-hidden="true"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#8B7355]/80 via-transparent to-transparent" aria-hidden="true" />
+        {/* Dog animation */}
+        <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+          <DogLoader2 />
+        </div>
 
         {/* Quote card */}
         <div className="relative z-10 bg-background/80 backdrop-blur-sm rounded-2xl p-6 max-w-xs shadow-sm">

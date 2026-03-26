@@ -145,7 +145,7 @@ export default function EditProductPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Price (USD) <span className="text-destructive">*</span></label>
+            <label className="block text-sm font-medium text-foreground mb-1.5">Price (INR) <span className="text-destructive">*</span></label>
             <input
               required type="number" min="0.01" step="0.01"
               value={price} onChange={(e) => setPrice(e.target.value)}

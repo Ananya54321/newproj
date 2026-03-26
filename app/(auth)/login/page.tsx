@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { LoginForm } from '@/components/auth/login-form'
+import DogLoader from '@/components/dog-loader'
 
 export const metadata: Metadata = {
   title: 'Login — Furever',
@@ -18,14 +19,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <div className="min-h-screen flex">
       {/* ── Left panel — hero ─────────────────────────────────────────── */}
       <div className="hidden lg:flex lg:w-[45%] xl:w-[42%] relative flex-col justify-between p-10 bg-[#2C3520] overflow-hidden">
-        {/* Background image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-60"
-          style={{ backgroundImage: "url('/references/login.png')" }}
-          aria-hidden="true"
-        />
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1a2010]/90 via-[#2C3520]/30 to-transparent" aria-hidden="true" />
+        {/* Dog animation */}
+        <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+          <DogLoader />
+        </div>
 
         {/* Logo */}
         <div className="relative z-10">

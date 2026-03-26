@@ -376,10 +376,10 @@ function ProductCard({
           <h3 className="font-serif text-xl text-foreground mb-1">{product.name}</h3>
           <p className="text-sm text-muted-foreground mb-4">{product.description}</p>
           <div className="flex items-center gap-2">
-            <span className="text-lg font-medium text-foreground">${product.price}</span>
+            <span className="text-lg font-medium text-foreground">₹{product.price.toLocaleString('en-IN')}</span>
             {product.originalPrice && (
               <span className="text-sm text-muted-foreground line-through">
-                ${product.originalPrice}
+                ₹{product.originalPrice.toLocaleString('en-IN')}
               </span>
             )}
           </div>

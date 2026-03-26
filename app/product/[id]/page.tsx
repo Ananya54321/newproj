@@ -177,10 +177,10 @@ export default function ProductPage() {
 
               {/* Price */}
               <div className="flex items-center gap-3 mb-8">
-                <span className="text-3xl font-medium text-foreground">${product.price}</span>
+                <span className="text-3xl font-medium text-foreground">₹{product.price.toLocaleString('en-IN')}</span>
                 {product.originalPrice && (
                   <span className="text-xl text-muted-foreground line-through">
-                    ${product.originalPrice}
+                    ₹{product.originalPrice.toLocaleString('en-IN')}
                   </span>
                 )}
               </div>
