@@ -1,5 +1,5 @@
 -- ============================================================
--- Furever - Phase 2/3/4 Migration
+-- Furever — Phase 2/3/4 Migration
 -- Run this in Supabase Dashboard → SQL Editor
 -- Safe to run on top of the base schema.sql
 -- ============================================================
