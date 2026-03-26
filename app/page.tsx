@@ -19,7 +19,7 @@ export default async function HomePage() {
       p.category === 'food' || p.category === 'toys' || p.category === 'health'
     ).slice(0, 12)
   } catch {
-    // leave empty — grid shows placeholder state
+    // leave empty - grid shows placeholder state
   }
 
   return (

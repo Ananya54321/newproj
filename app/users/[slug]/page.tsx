@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props) {
   if (!data || data.profile.role === 'admin') return { title: 'Profile Not Found' }
   const name = data.profile.full_name ?? slug
   return {
-    title: `${name} — Furever`,
+    title: `${name} - Furever`,
     description: data.profile.bio ?? `${name}'s profile on Furever`,
   }
 }

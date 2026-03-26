@@ -172,7 +172,7 @@ export async function getPosts(
   if (sort === 'new') query = query.order('created_at', { ascending: false })
   else if (sort === 'top') query = query.order('vote_score', { ascending: false })
   else {
-    // hot: recent posts weighted by votes — order by created_at desc as approximation
+    // hot: recent posts weighted by votes - order by created_at desc as approximation
     query = query.order('created_at', { ascending: false })
   }
 
@@ -277,7 +277,7 @@ export async function votePost(
     .maybeSingle()
 
   if (existing?.vote === vote) {
-    // Same vote — remove it
+    // Same vote - remove it
     const { error } = await supabaseClient
       .from('post_votes')
       .delete()

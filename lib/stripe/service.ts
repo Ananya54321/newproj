@@ -2,9 +2,9 @@
  * Stripe Connect service.
  *
  * Required env vars:
- *   STRIPE_SECRET_KEY              — server-side secret key
- *   STRIPE_CONNECT_CLIENT_ID       — OAuth client_id from Stripe Connect settings
- *   NEXT_PUBLIC_APP_URL            — your app's base URL (e.g. http://localhost:3000)
+ *   STRIPE_SECRET_KEY              - server-side secret key
+ *   STRIPE_CONNECT_CLIENT_ID       - OAuth client_id from Stripe Connect settings
+ *   NEXT_PUBLIC_APP_URL            - your app's base URL (e.g. http://localhost:3000)
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'

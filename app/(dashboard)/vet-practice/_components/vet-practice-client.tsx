@@ -62,7 +62,7 @@ export function VetPracticeClient({ vetProfile, initialAppointments }: Props) {
     id: string,
     status: 'confirmed' | 'completed' | 'cancelled'
   ) => {
-    // Optimistic update — move appointment to new status instantly
+    // Optimistic update - move appointment to new status instantly
     const snapshot = appointments
     setAppointments((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)))
     setActionLoading(id)

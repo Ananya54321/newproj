@@ -219,7 +219,7 @@ export function EventForm({ initial, onSubmit, submitLabel = 'Create Event' }: P
         />
       </div>
 
-      {/* Goal Amount — fundraiser only */}
+      {/* Goal Amount - fundraiser only */}
       {type === 'fundraiser' && (
         <div className="space-y-1.5">
           <Label htmlFor="event-goal">Fundraising Goal (₹)</Label>

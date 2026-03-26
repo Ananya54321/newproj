@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function SignupPage() {
   return (
     <div className="min-h-screen flex flex-row-reverse">
-      {/* ── Right panel — hero ────────────────────────────────────────── */}
+      {/* ── Right panel - hero ────────────────────────────────────────── */}
       <div className="hidden lg:flex lg:w-[48%] xl:w-[45%] relative flex-col justify-end p-10 bg-[#C4AA87] overflow-hidden">
         {/* Dog animation */}
         <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
@@ -24,12 +24,12 @@ export default function SignupPage() {
             "The purity of a person's heart can be quickly measured by how they regard their animals."
           </p>
           <p className="text-xs uppercase tracking-widest text-muted-foreground font-medium">
-            — The Furever Philosophy
+            - The Furever Philosophy
           </p>
         </div>
       </div>
 
-      {/* ── Left panel — form ─────────────────────────────────────────── */}
+      {/* ── Left panel - form ─────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col px-6 py-10 sm:px-10 lg:px-14 xl:px-20 bg-background overflow-y-auto">
         {/* Logo */}
         <div className="mb-8">

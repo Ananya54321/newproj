@@ -2,7 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getApprovedNGOs, getUpcomingEvents } from '@/lib/ngo/service'
 import { NgosClient } from './_components/ngos-client'
 
-export const metadata = { title: 'NGOs & Rescues — Furever' }
+export const metadata = { title: 'NGOs & Rescues - Furever' }
 
 export default async function NGOsPage() {
   const supabase = await createServerSupabaseClient()

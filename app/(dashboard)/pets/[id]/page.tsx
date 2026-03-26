@@ -7,7 +7,7 @@ import { DeletePetDialog } from '@/components/pets/delete-pet-dialog'
 import { getServerUser, createServerSupabaseClient } from '@/lib/supabase/server'
 import { getPetById, formatPetAge } from '@/lib/pets/service'
 
-export const metadata = { title: 'Pet Profile — Furever' }
+export const metadata = { title: 'Pet Profile - Furever' }
 
 interface Props {
   params: Promise<{ id: string }>

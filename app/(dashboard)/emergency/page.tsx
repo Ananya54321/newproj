@@ -3,7 +3,7 @@ import { Plus, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { RealtimeFeed } from '@/components/emergency/realtime-feed'
 
-export const metadata = { title: 'Emergency Reports — Furever' }
+export const metadata = { title: 'Emergency Reports - Furever' }
 
 export default function EmergencyPage() {
   return (

@@ -229,7 +229,7 @@ export async function getPendingStores(client: SupabaseClient): Promise<PendingS
     // stores is an array (one-to-many), take the first
     const store = Array.isArray(row.stores) ? row.stores[0] ?? null : (row.stores ?? null)
     return {
-      id: row.id,          // profile/owner ID — used for approve/reject actions
+      id: row.id,          // profile/owner ID - used for approve/reject actions
       name: store?.name ?? 'No store name yet',
       slug: store?.slug ?? null,
       owner_id: row.id,

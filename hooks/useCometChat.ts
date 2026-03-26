@@ -9,7 +9,7 @@ export function useCometChat(profile: Profile | null) {
   useEffect(() => {
     if (!profile) return
 
-    // Frontend guard — real enforcement is backend
+    // Frontend guard - real enforcement is backend
     if (profile.role !== 'user') {
       setStatus('denied')
       return

@@ -64,7 +64,7 @@ function ForgotPasswordContent() {
               <p className="text-sm text-muted-foreground">
                 We sent a magic link to{' '}
                 <span className="font-medium text-foreground">{email}</span>.
-                Click it to sign in instantly — no password needed.
+                Click it to sign in instantly - no password needed.
               </p>
             </div>
             <p className="text-xs text-muted-foreground">

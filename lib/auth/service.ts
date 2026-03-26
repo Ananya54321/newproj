@@ -57,7 +57,7 @@ export async function signUpWithEmail(
     }
 
     // Supabase returns success even for duplicate emails when email confirmations
-    // are enabled — detect via empty identities array.
+    // are enabled - detect via empty identities array.
     if (data.user?.identities?.length === 0) {
       return {
         data: null,

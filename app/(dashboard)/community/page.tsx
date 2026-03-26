@@ -2,7 +2,7 @@ import { getServerUser, createServerSupabaseClient } from '@/lib/supabase/server
 import { getCommunities, getPosts, getUserCommunities } from '@/lib/community/service'
 import { CommunityFeedClient } from './_components/community-feed-client'
 
-export const metadata = { title: 'Community — Furever' }
+export const metadata = { title: 'Community - Furever' }
 
 export default async function CommunityFeedPage() {
   const user = await getServerUser()

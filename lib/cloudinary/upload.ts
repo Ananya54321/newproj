@@ -1,9 +1,9 @@
 /**
- * Cloudinary upload utility — unsigned preset approach.
+ * Cloudinary upload utility - unsigned preset approach.
  *
  * Required env vars (set in .env.local):
- *   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME     — your cloud name
- *   NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET  — an unsigned upload preset
+ *   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME     - your cloud name
+ *   NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET  - an unsigned upload preset
  *
  * Create an unsigned preset in Cloudinary Dashboard →
  *   Settings → Upload → Upload presets → Add unsigned preset
@@ -17,7 +17,7 @@ export async function uploadToCloudinary(
 
   if (!cloudName || !uploadPreset) {
     console.warn(
-      '[Cloudinary] Missing env vars — NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and/or NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET not set.'
+      '[Cloudinary] Missing env vars - NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and/or NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET not set.'
     )
     return {
       url: null,

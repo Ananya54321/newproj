@@ -260,7 +260,7 @@ export function SignupForm() {
         </div>
       )}
 
-      {/* Step 1 — Role selection */}
+      {/* Step 1 - Role selection */}
       {step === 1 && (
         <div className="space-y-3">
           <p className="text-sm font-medium text-foreground">I am a…</p>
@@ -293,7 +293,7 @@ export function SignupForm() {
         </div>
       )}
 
-      {/* Step 2 — Basic info */}
+      {/* Step 2 - Basic info */}
       {step === 2 && (
         <form onSubmit={handleStep2Continue} className="space-y-4">
           <button type="button" onClick={() => setStep(1)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors -mt-2">
@@ -338,7 +338,7 @@ export function SignupForm() {
         </form>
       )}
 
-      {/* Step 3 — Role-specific details */}
+      {/* Step 3 - Role-specific details */}
       {step === 3 && selectedRole && selectedRole !== 'user' && selectedRole !== 'admin' && (
         <form onSubmit={(e) => { e.preventDefault(); handleSubmit() }} className="space-y-5">
           <button type="button" onClick={() => setStep(2)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors -mt-2">
@@ -395,7 +395,7 @@ export function SignupForm() {
             </>
           )}
 
-          {/* Social links — all professional roles */}
+          {/* Social links - all professional roles */}
           <div className="space-y-2">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Social Links (optional)</p>
             <div className="flex items-center gap-2">

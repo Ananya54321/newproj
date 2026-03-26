@@ -6,7 +6,7 @@ import { VetCard } from '@/components/vets/vet-card'
 import { getServerUser, createServerSupabaseClient } from '@/lib/supabase/server'
 import { getApprovedVets } from '@/lib/vets/service'
 
-export const metadata = { title: 'Book Appointment — Furever' }
+export const metadata = { title: 'Book Appointment - Furever' }
 
 export default async function NewAppointmentPage() {
   const user = await getServerUser()

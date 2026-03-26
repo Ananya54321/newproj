@@ -46,7 +46,7 @@ export function SessionSync() {
           window.location.href = '/login'
         }
       } else if (event === 'TOKEN_REFRESHED' && session) {
-        // Pass tokens directly — avoids re-acquiring the auth lock mid-refresh
+        // Pass tokens directly - avoids re-acquiring the auth lock mid-refresh
         syncedRef.current = false
         await syncSessionWithServer({
           access_token: session.access_token,

@@ -14,7 +14,7 @@ async function upsertCometChatUser(uid: string, name: string): Promise<void> {
     headers: { 'Content-Type': 'application/json', apikey: API_KEY },
     body: JSON.stringify({ uid, name }),
   }).catch(() => {
-    // User may already exist — safe to ignore
+    // User may already exist - safe to ignore
   })
 }
 
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
   }
 
-  // ── 3. HARD BLOCK — only 'user' role (pet owners) get chat ───────────────
+  // ── 3. HARD BLOCK - only 'user' role (pet owners) get chat ───────────────
   if (profile.role !== 'user') {
     return NextResponse.json(
       { error: 'Chat is only available for pet owners' },

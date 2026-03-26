@@ -9,7 +9,7 @@ export default async function VetPracticePage() {
 
   const supabase = await createServerSupabaseClient()
 
-  // Check role — non-vets should not see vet-practice
+  // Check role - non-vets should not see vet-practice
   const { data: profile } = await supabase
     .from('profiles')
     .select('role')

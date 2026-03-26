@@ -111,7 +111,7 @@ export function NgosClient({ initialNgos, initialEvents }: Props) {
                 className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-border/60 bg-card hover:border-primary/50 transition-colors text-muted-foreground hover:text-foreground"
               >
                 {locating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Navigation className="w-3 h-3" />}
-                {userLocation ? 'Location on — sorted by distance' : 'Sort by distance'}
+                {userLocation ? 'Location on - sorted by distance' : 'Sort by distance'}
               </button>
               {userLocation && (
                 <button

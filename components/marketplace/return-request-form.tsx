@@ -125,11 +125,11 @@ export function ReturnRequestForm({ order, userId, onSuccess, onClose }: ReturnR
             <div className="space-y-1.5 text-sm">
               <div className="flex items-start gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-                <span className="text-foreground"><span className="font-medium">Damaged / wrong item</span> — Full refund incl. delivery, after admin review &amp; collection</span>
+                <span className="text-foreground"><span className="font-medium">Damaged / wrong item</span> - Full refund incl. delivery, after admin review &amp; collection</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0" />
-                <span className="text-foreground"><span className="font-medium">Changed mind</span> — Product-only refund, auto-processed after collection</span>
+                <span className="text-foreground"><span className="font-medium">Changed mind</span> - Product-only refund, auto-processed after collection</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="w-2 h-2 rounded-full bg-destructive mt-1.5 shrink-0" />

@@ -9,7 +9,7 @@ import { getVetById } from '@/lib/vets/service'
 import { getUserPets } from '@/lib/pets/service'
 import { getServerUser, createServerSupabaseClient } from '@/lib/supabase/server'
 
-export const metadata = { title: 'Vet Profile — Furever' }
+export const metadata = { title: 'Vet Profile - Furever' }
 
 interface Props {
   params: Promise<{ id: string }>

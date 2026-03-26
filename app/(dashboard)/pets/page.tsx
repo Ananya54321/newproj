@@ -5,7 +5,7 @@ import { PetCard } from '@/components/pets/pet-card'
 import { AddPetDialog } from '@/components/pets/add-pet-dialog'
 import { redirect } from 'next/navigation'
 
-export const metadata = { title: 'My Pets — Furever' }
+export const metadata = { title: 'My Pets - Furever' }
 
 export default async function PetsPage() {
   const user = await getServerUser()

@@ -1,5 +1,5 @@
 -- ============================================================
--- FUREVER — Phase 6 (Community) + Phase 7 (NGO) Migration
+-- FUREVER - Phase 6 (Community) + Phase 7 (NGO) Migration
 -- Run in Supabase SQL Editor
 -- ============================================================
 

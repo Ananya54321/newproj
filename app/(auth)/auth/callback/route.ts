@@ -7,8 +7,8 @@ import type { User } from '@supabase/supabase-js'
  * GET /auth/callback
  *
  * Handles two Supabase auth flows:
- *  1. PKCE code exchange — `code` param (email confirmation + OAuth)
- *  2. OTP / magic link  — `token_hash` + `type` params
+ *  1. PKCE code exchange - `code` param (email confirmation + OAuth)
+ *  2. OTP / magic link  - `token_hash` + `type` params
  *
  * With @supabase/ssr the PKCE code_verifier is stored in a cookie by the
  * browser client, so the code exchange happens entirely server-side here.
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL(dest, url.origin))
   }
 
-  // Cookies set by Supabase during the session exchange — forwarded to the
+  // Cookies set by Supabase during the session exchange - forwarded to the
   // redirect response so the server session is established immediately.
   const pendingCookies: Array<{
     name: string
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     return response
   }
 
-  // Fallback — no valid params
+  // Fallback - no valid params
   return NextResponse.redirect(new URL('/login', url.origin))
 }
 
@@ -220,7 +220,7 @@ async function createProfileIfMissing(user: User) {
       }
     }
   } catch (err) {
-    // Non-fatal — the DB trigger on auth.users also creates the profile row
+    // Non-fatal - the DB trigger on auth.users also creates the profile row
     console.error('[auth/callback] Could not create profile:', err)
   }
 }

@@ -6,7 +6,7 @@ import { useCometChat } from '@/hooks/useCometChat'
 import { CometChatProvider } from '@/CometChat/context/CometChatContext'
 import type { Profile } from '@/lib/auth/types'
 
-// Lazy-load the heavy CometChat UI — avoids SSR issues with browser-only APIs
+// Lazy-load the heavy CometChat UI - avoids SSR issues with browser-only APIs
 const CometChatApp = dynamic(() => import('@/CometChat/CometChatApp'), {
   ssr: false,
   loading: () => <ChatSkeleton />,
@@ -19,7 +19,7 @@ interface ChatWrapperProps {
 export function ChatWrapper({ profile }: ChatWrapperProps) {
   const { status } = useCometChat(profile)
 
-  // Hard frontend gate — real security is in the API route
+  // Hard frontend gate - real security is in the API route
   if (profile.role !== 'user') {
     return <ChatDenied />
   }

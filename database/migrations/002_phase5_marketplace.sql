@@ -1,5 +1,5 @@
 -- ============================================================
--- FUREVER — Phase 5: Marketplace
+-- FUREVER - Phase 5: Marketplace
 -- Run this in the Supabase SQL Editor AFTER schema.sql
 -- ============================================================
 

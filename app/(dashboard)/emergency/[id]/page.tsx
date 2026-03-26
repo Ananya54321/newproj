@@ -12,7 +12,7 @@ import {
 } from '@/lib/auth/types'
 import { cn } from '@/lib/utils'
 
-export const metadata = { title: 'Emergency Report — Furever' }
+export const metadata = { title: 'Emergency Report - Furever' }
 
 interface Props {
   params: Promise<{ id: string }>

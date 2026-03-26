@@ -82,7 +82,7 @@ export function DashboardSidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
 
-  // Still fetching auth state — render a skeleton placeholder so layout doesn't shift
+  // Still fetching auth state - render a skeleton placeholder so layout doesn't shift
   if (loading) {
     return (
       <>

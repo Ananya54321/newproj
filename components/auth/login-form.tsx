@@ -63,7 +63,7 @@ export function LoginForm({ redirectTo = '/dashboard' }: LoginFormProps) {
         toast.error(result.error.message)
         setOauthLoading(false)
       }
-      // On success, browser redirects — no further action needed
+      // On success, browser redirects - no further action needed
     } catch {
       setOauthLoading(false)
     }

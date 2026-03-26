@@ -3,7 +3,7 @@ import { getServerUser, createServerSupabaseClient } from '@/lib/supabase/server
 import { ProfileClient } from './_components/profile-client'
 import type { Profile } from '@/lib/auth/types'
 
-export const metadata = { title: 'Profile — Furever' }
+export const metadata = { title: 'Profile - Furever' }
 
 export default async function ProfilePage() {
   const user = await getServerUser()

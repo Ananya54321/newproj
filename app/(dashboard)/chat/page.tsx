@@ -10,7 +10,7 @@ export default async function ChatPage() {
   const user = await getServerUser()
   if (!user) redirect('/login')
 
-  // ── Role check — only pet owners (role === 'user') may access this page ───
+  // ── Role check - only pet owners (role === 'user') may access this page ───
   const supabase = await createServerSupabaseClient()
   const { data: profile } = await supabase
     .from('profiles')

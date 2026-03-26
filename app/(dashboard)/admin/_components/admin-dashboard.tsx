@@ -120,7 +120,7 @@ function Section({ title, count, color, children }: {
       {open && (
         <div className="border-t border-border/50">
           {count === 0
-            ? <div className="px-5 py-8 text-center text-sm text-muted-foreground">No pending {title.toLowerCase()} — all caught up!</div>
+            ? <div className="px-5 py-8 text-center text-sm text-muted-foreground">No pending {title.toLowerCase()} - all caught up!</div>
             : children}
         </div>
       )}
@@ -456,7 +456,7 @@ function UsersTab({ initialUsers }: { initialUsers: AdminUser[] }) {
                     {u.avatar_url ? <img src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : <User className="w-4 h-4 text-primary" />}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{u.full_name ?? '—'}</p>
+                    <p className="text-sm font-medium text-foreground truncate">{u.full_name ?? '-'}</p>
                     <p className="text-xs text-muted-foreground truncate">{u.email}</p>
                   </div>
                 </div>
@@ -467,7 +467,7 @@ function UsersTab({ initialUsers }: { initialUsers: AdminUser[] }) {
                   ? <span className={cn('inline-flex px-2 py-0.5 rounded-full text-xs font-medium', VERIFICATION_COLORS[u.verification_status] ?? 'bg-secondary text-secondary-foreground')}>
                       {u.verification_status.charAt(0).toUpperCase() + u.verification_status.slice(1)}
                     </span>
-                  : <span className="text-xs text-muted-foreground">—</span>}
+                  : <span className="text-xs text-muted-foreground">-</span>}
                 <span className="text-xs text-muted-foreground">{formatDate(u.created_at)}</span>
               </div>
             ))}

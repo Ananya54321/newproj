@@ -5,7 +5,7 @@ import type { Profile } from '@/lib/auth/types'
 import { DashboardContent } from '@/components/dashboard/dashboard-content'
 
 export const metadata: Metadata = {
-  title: 'Dashboard — Furever',
+  title: 'Dashboard - Furever',
 }
 
 export default async function DashboardPage() {

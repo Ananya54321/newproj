@@ -56,7 +56,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start gap-3 py-2.5 border-b border-border/40 last:border-0">
       <span className="text-xs text-muted-foreground w-36 shrink-0 pt-0.5">{label}</span>
-      <span className="text-sm text-foreground flex-1">{value ?? <span className="italic text-muted-foreground">—</span>}</span>
+      <span className="text-sm text-foreground flex-1">{value ?? <span className="italic text-muted-foreground">-</span>}</span>
     </div>
   )
 }

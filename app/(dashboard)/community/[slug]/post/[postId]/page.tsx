@@ -164,7 +164,7 @@ export default function PostDetailPage() {
                 {post.title}
               </h1>
 
-              {/* Content — type-agnostic */}
+              {/* Content - type-agnostic */}
               {post.content && (
                 <p className="text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed mb-4">
                   {post.content}

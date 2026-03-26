@@ -21,20 +21,20 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: { default: 'Furever — A Pet Care Community', template: '%s | Furever' },
-  description: 'Connect with vets, pet owners, NGOs, and shops on Furever — the all-in-one pet care platform.',
+  title: { default: 'Furever - A Pet Care Community', template: '%s | Furever' },
+  description: 'Connect with vets, pet owners, NGOs, and shops on Furever - the all-in-one pet care platform.',
   keywords: ['pets', 'veterinarian', 'pet care', 'pet community', 'animal welfare', 'emergency rescue', 'pet marketplace'],
   openGraph: {
     type: 'website',
     siteName: 'Furever',
-    title: 'Furever — A Pet Care Community',
-    description: 'Connect with vets, pet owners, NGOs, and shops on Furever — the all-in-one pet care platform.',
+    title: 'Furever - A Pet Care Community',
+    description: 'Connect with vets, pet owners, NGOs, and shops on Furever - the all-in-one pet care platform.',
     // images: [{ url: '/og-default.png', width: 1200, height: 630 }],  // uncomment once og-default.png is added to /public
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Furever — A Pet Care Community',
-    description: 'Connect with vets, pet owners, NGOs, and shops on Furever — the all-in-one pet care platform.',
+    title: 'Furever - A Pet Care Community',
+    description: 'Connect with vets, pet owners, NGOs, and shops on Furever - the all-in-one pet care platform.',
   },
   robots: { index: true, follow: true },
   icons: {
