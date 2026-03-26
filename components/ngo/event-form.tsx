@@ -31,7 +31,6 @@ export function EventForm({ initial, onSubmit, submitLabel = 'Create Event' }: P
   const [timeStr, setTimeStr] = useState(
     initial?.event_date ? format(new Date(initial.event_date), 'HH:mm') : '10:00'
   )
-  const [registrationUrl, setRegistrationUrl] = useState(initial?.registration_url ?? '')
   const [goalAmount, setGoalAmount] = useState(initial?.goal_amount ? String(initial.goal_amount) : '')
   const [imageUrl, setImageUrl] = useState(initial?.image_url ?? '')
   const [uploadingImage, setUploadingImage] = useState(false)
@@ -66,7 +65,6 @@ export function EventForm({ initial, onSubmit, submitLabel = 'Create Event' }: P
       location: location.trim() || null,
       event_date: combined.toISOString(),
       image_url: imageUrl || null,
-      registration_url: registrationUrl.trim() || null,
       goal_amount: goalAmount ? parseFloat(goalAmount) : null,
     })
     setSubmitting(false)
@@ -207,19 +205,7 @@ export function EventForm({ initial, onSubmit, submitLabel = 'Create Event' }: P
         )}
       </div>
 
-      {/* Registration URL */}
-      <div className="space-y-1.5">
-        <Label htmlFor="event-reg">Registration URL</Label>
-        <Input
-          id="event-reg"
-          type="url"
-          value={registrationUrl}
-          onChange={(e) => setRegistrationUrl(e.target.value)}
-          placeholder="https://..."
-        />
-      </div>
-
-      {/* Goal Amount - fundraiser only */}
+      {/* Goal Amount — fundraiser only */}
       {type === 'fundraiser' && (
         <div className="space-y-1.5">
           <Label htmlFor="event-goal">Fundraising Goal (₹)</Label>

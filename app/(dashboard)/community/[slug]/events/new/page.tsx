@@ -38,7 +38,6 @@ export default function NewCommunityEventPage() {
   const [location, setLocation] = useState('')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>()
   const [timeStr, setTimeStr] = useState('10:00')
-  const [registrationUrl, setRegistrationUrl] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [uploadingImage, setUploadingImage] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -77,7 +76,6 @@ export default function NewCommunityEventPage() {
         location: location.trim() || null,
         event_date: combined.toISOString(),
         image_url: imageUrl || null,
-        registration_url: registrationUrl.trim() || null,
       },
       communityId,
       user.id
@@ -232,18 +230,6 @@ export default function NewCommunityEventPage() {
                   <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                 </label>
               )}
-            </div>
-
-            {/* Registration URL */}
-            <div className="space-y-1.5">
-              <Label htmlFor="event-reg">Registration URL</Label>
-              <Input
-                id="event-reg"
-                type="url"
-                value={registrationUrl}
-                onChange={(e) => setRegistrationUrl(e.target.value)}
-                placeholder="https://…"
-              />
             </div>
 
             <div className="flex gap-3">

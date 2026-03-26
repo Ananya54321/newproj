@@ -9,6 +9,8 @@ import type {
   DonationWithRelations,
   NgoEvent,
   NgoEventWithNgo,
+  NgoEventRegistration,
+  NgoEventRegistrationWithUser,
 } from '@/lib/auth/types'
 
 // ─── Form data ────────────────────────────────────────────────────────────────
@@ -236,7 +238,6 @@ export interface NgoEventFormData {
   location?: string | null
   event_date: string
   image_url?: string | null
-  registration_url?: string | null
   goal_amount?: number | null
 }
 
@@ -314,4 +315,101 @@ export async function deleteNGOEvent(eventId: string): Promise<{ error: string |
     .update({ is_active: false })
     .eq('id', eventId)
   return { error: error?.message ?? null }
+}
+
+// ─── NGO Event Registrations ──────────────────────────────────────────────────
+
+export async function registerForNgoEvent(
+  eventId: string,
+  userId: string
+): Promise<{ error: string | null }> {
+  const { error } = await supabaseClient
+    .from('ngo_event_registrations')
+    .insert({ event_id: eventId, user_id: userId })
+  return { error: error?.message ?? null }
+}
+
+export async function unregisterFromNgoEvent(
+  eventId: string,
+  userId: string
+): Promise<{ error: string | null }> {
+  const { error } = await supabaseClient
+    .from('ngo_event_registrations')
+    .delete()
+    .eq('event_id', eventId)
+    .eq('user_id', userId)
+  return { error: error?.message ?? null }
+}
+
+export async function checkNgoEventRegistration(
+  eventId: string,
+  userId: string,
+  client: SupabaseClient = supabaseClient
+): Promise<boolean> {
+  const { data } = await client
+    .from('ngo_event_registrations')
+    .select('id')
+    .eq('event_id', eventId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  return !!data
+}
+
+/** Returns a map of eventId → registration count for the given NGO's events. */
+export async function getNgoEventRegistrationCounts(
+  ngoId: string,
+  client: SupabaseClient = supabaseClient
+): Promise<Record<string, number>> {
+  const { data: events } = await client
+    .from('ngo_events')
+    .select('id')
+    .eq('ngo_id', ngoId)
+    .eq('is_active', true)
+  if (!events || events.length === 0) return {}
+
+  const eventIds = events.map((e) => e.id)
+  const { data } = await client
+    .from('ngo_event_registrations')
+    .select('event_id')
+    .in('event_id', eventIds)
+  if (!data) return {}
+
+  const counts: Record<string, number> = {}
+  for (const row of data) {
+    counts[row.event_id] = (counts[row.event_id] ?? 0) + 1
+  }
+  return counts
+}
+
+/** Fetch all registered users for a specific NGO event (for NGO dashboard). */
+export async function getNgoEventRegistrations(
+  eventId: string,
+  client: SupabaseClient = supabaseClient
+): Promise<NgoEventRegistrationWithUser[]> {
+  const { data, error } = await client
+    .from('ngo_event_registrations')
+    .select(`*, user:profiles!ngo_event_registrations_user_id_fkey(id, full_name, avatar_url, email)`)
+    .eq('event_id', eventId)
+    .order('created_at', { ascending: true })
+  if (error) throw error
+  return ((data ?? []) as unknown[]).map((raw) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const r = raw as any
+    return { ...r, user: Array.isArray(r.user) ? r.user[0] : r.user }
+  }) as NgoEventRegistrationWithUser[]
+}
+
+/** Fetch the set of event IDs the user is registered for, from a given list. */
+export async function getUserNgoRegisteredEventIds(
+  userId: string,
+  eventIds: string[],
+  client: SupabaseClient = supabaseClient
+): Promise<Set<string>> {
+  if (eventIds.length === 0) return new Set()
+  const { data } = await client
+    .from('ngo_event_registrations')
+    .select('event_id')
+    .eq('user_id', userId)
+    .in('event_id', eventIds)
+  return new Set((data ?? []).map((r) => r.event_id))
 }

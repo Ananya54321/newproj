@@ -542,6 +542,28 @@ export interface NgoEventWithNgo extends NgoEvent {
   }
 }
 
+export interface NgoEventRegistration {
+  id: string
+  event_id: string
+  user_id: string
+  created_at: string
+}
+
+export interface NgoEventRegistrationWithUser extends NgoEventRegistration {
+  user: Pick<Profile, 'id' | 'full_name' | 'avatar_url' | 'email'>
+}
+
+export interface CommunityEventRegistration {
+  id: string
+  event_id: string
+  user_id: string
+  created_at: string
+}
+
+export interface CommunityEventRegistrationWithUser extends CommunityEventRegistration {
+  user: Pick<Profile, 'id' | 'full_name' | 'avatar_url' | 'email'>
+}
+
 export interface ProductReview {
   id: string
   product_id: string

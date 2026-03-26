@@ -6,7 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   Plus, Users, FileText, Loader2, PawPrint, Clock, TrendingUp,
-  Flame, Calendar, ArrowLeft, MapPin, ExternalLink, Trash2,
+  Flame, Calendar, ArrowLeft, MapPin, Trash2, CheckCircle2, List,
 } from 'lucide-react'
 import {
   getCommunityBySlug,
@@ -16,6 +16,9 @@ import {
   leaveCommunity,
   getCommunityEvents,
   deleteCommunityEvent,
+  registerForCommunityEvent,
+  unregisterFromCommunityEvent,
+  getUserCommunityRegisteredEventIds,
   type PostSort,
 } from '@/lib/community/service'
 import { PostCard } from '@/components/community/post-card'
@@ -47,6 +50,7 @@ export default function CommunityPage() {
   const [community, setCommunity] = useState<Community | null>(null)
   const [posts, setPosts] = useState<PostWithMeta[]>([])
   const [events, setEvents] = useState<CommunityEventWithCreator[]>([])
+  const [registeredEventIds, setRegisteredEventIds] = useState<Set<string>>(new Set())
   const [isMember, setIsMember] = useState(false)
   const [memberRole, setMemberRole] = useState<'member' | 'moderator' | null>(null)
   const [loading, setLoading] = useState(true)
@@ -70,6 +74,10 @@ export default function CommunityPage() {
       setIsMember(membership.is_member)
       setMemberRole(membership.role)
       setEvents(communityEvents)
+      if (user?.id && communityEvents.length > 0) {
+        const regIds = await getUserCommunityRegisteredEventIds(user.id, communityEvents.map((e) => e.id))
+        setRegisteredEventIds(regIds)
+      }
     } catch (err) {
       console.error('Failed to load community:', err)
       toast.error('Failed to load community. Please refresh.')
@@ -108,6 +116,25 @@ export default function CommunityPage() {
     else {
       setEvents((prev) => prev.filter((e) => e.id !== eventId))
       toast.success('Event removed')
+    }
+  }
+
+  const handleEventRegistration = async (eventId: string, shouldRegister: boolean) => {
+    if (!user?.id) { toast.error('Sign in to register'); return }
+    if (shouldRegister) {
+      const { error } = await registerForCommunityEvent(eventId, user.id)
+      if (error) toast.error('Registration failed')
+      else {
+        setRegisteredEventIds((prev) => new Set([...prev, eventId]))
+        toast.success('You are registered!')
+      }
+    } else {
+      const { error } = await unregisterFromCommunityEvent(eventId, user.id)
+      if (error) toast.error('Could not cancel registration')
+      else {
+        setRegisteredEventIds((prev) => { const s = new Set(prev); s.delete(eventId); return s })
+        toast.success('Registration cancelled')
+      }
     }
   }
 
@@ -276,6 +303,10 @@ export default function CommunityPage() {
                       event={event}
                       canDelete={user?.id === event.creator_id || memberRole === 'moderator'}
                       onDelete={() => handleDeleteEvent(event.id)}
+                      isRegistered={registeredEventIds.has(event.id)}
+                      onRegister={user?.id ? (should) => handleEventRegistration(event.id, should) : undefined}
+                      isCreator={user?.id === event.creator_id}
+                      communitySlug={slug}
                     />
                   ))
                 )}
@@ -396,16 +427,33 @@ function CommunityEventCard({
   event,
   canDelete,
   onDelete,
+  isRegistered,
+  onRegister,
+  isCreator,
+  communitySlug,
 }: {
   event: CommunityEventWithCreator
   canDelete: boolean
   onDelete: () => void
+  isRegistered: boolean
+  onRegister?: (shouldRegister: boolean) => void | Promise<void>
+  isCreator: boolean
+  communitySlug: string
 }) {
+  const [registering, setRegistering] = useState(false)
+
   const TYPE_COLORS: Record<string, string> = {
     meetup:   'bg-blue-100 text-blue-800',
     social:   'bg-purple-100 text-purple-800',
     training: 'bg-amber-100 text-amber-800',
     other:    'bg-secondary text-secondary-foreground',
+  }
+
+  const handleRegisterClick = async () => {
+    if (!onRegister) return
+    setRegistering(true)
+    await onRegister(!isRegistered)
+    setRegistering(false)
   }
 
   return (
@@ -457,25 +505,54 @@ function CommunityEventCard({
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-between pt-1 gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
             {event.creator?.avatar_url ? (
-              <Image src={event.creator.avatar_url} alt="" width={18} height={18} className="rounded-full" />
+              <Image src={event.creator.avatar_url} alt="" width={18} height={18} className="rounded-full shrink-0" />
             ) : (
-              <div className="w-[18px] h-[18px] rounded-full bg-muted" />
+              <div className="w-[18px] h-[18px] rounded-full bg-muted shrink-0" />
             )}
-            <span className="text-xs text-muted-foreground">{event.creator?.full_name ?? 'Member'}</span>
+            <span className="text-xs text-muted-foreground truncate">{event.creator?.full_name ?? 'Member'}</span>
           </div>
-          {event.registration_url && (
-            <a
-              href={event.registration_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs px-3 py-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1"
-            >
-              Register <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
+
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Creator: see registrations */}
+            {isCreator && (
+              <Link
+                href={`/community/${communitySlug}/events/${event.id}/registrations`}
+                className="text-xs px-2.5 py-1.5 rounded-full border border-border/60 bg-background text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors flex items-center gap-1"
+              >
+                <List className="w-3 h-3" />
+                Registrations
+              </Link>
+            )}
+
+            {/* Register / Registered button */}
+            {onRegister && (
+              <button
+                type="button"
+                onClick={handleRegisterClick}
+                disabled={registering}
+                className={cn(
+                  'text-xs px-3 py-1.5 rounded-full transition-colors flex items-center gap-1',
+                  isRegistered
+                    ? 'bg-emerald-100 text-emerald-700 hover:bg-rose-100 hover:text-rose-700'
+                    : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                )}
+              >
+                {registering ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : isRegistered ? (
+                  <>
+                    <CheckCircle2 className="w-3 h-3" />
+                    Registered
+                  </>
+                ) : (
+                  'Register'
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
