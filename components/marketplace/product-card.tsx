@@ -74,10 +74,10 @@ export function ProductCard({ product, index = 0, isVisible = true }: ProductCar
             </span>
           )}
 
-          {/* Out of stock */}
+          {/* Sold out */}
           {product.stock === 0 && (
-            <span className="absolute top-4 right-4 px-3 py-1 rounded-full text-xs bg-destructive/10 text-destructive">
-              Out of stock
+            <span className="absolute top-4 right-4 px-3 py-1 rounded-full text-xs bg-destructive/10 text-destructive font-medium">
+              Sold out
             </span>
           )}
 

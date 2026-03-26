@@ -8,7 +8,6 @@ import { OrderCard } from '@/components/marketplace/order-card'
 import { getUserOrders, getOwnerStore, getStoreOrders } from '@/lib/marketplace/service'
 import { supabaseClient } from '@/lib/supabase/client'
 import type { OrderWithItems, Store } from '@/lib/auth/types'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function OrdersPage() {
   const { user, profile } = useAuth()
@@ -101,20 +100,9 @@ export default function OrdersPage() {
         )}
 
         {isStoreOwner && store ? (
-          <Tabs defaultValue="purchases">
-            <TabsList>
-              <TabsTrigger value="purchases">My Purchases ({userOrders.length})</TabsTrigger>
-              <TabsTrigger value="store">Store Orders ({storeOrders.length})</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="purchases" className="mt-4 space-y-4">
-              <OrdersList orders={userOrders} isStoreOwner={false} onRefresh={loadOrders} />
-            </TabsContent>
-
-            <TabsContent value="store" className="mt-4 space-y-4">
-              <OrdersList orders={storeOrders} isStoreOwner={true} onRefresh={loadOrders} />
-            </TabsContent>
-          </Tabs>
+          <div className="space-y-4">
+            <OrdersList orders={storeOrders} isStoreOwner={true} onRefresh={loadOrders} />
+          </div>
         ) : (
           <div className="space-y-4">
             <OrdersList orders={userOrders} isStoreOwner={false} onRefresh={loadOrders} />

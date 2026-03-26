@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, Package, Pencil, Trash2, Store as StoreIcon, ExternalLink, Loader2 } from 'lucide-react'
+import { Plus, Package, Pencil, Trash2, Store as StoreIcon, ExternalLink, Loader2, AlertTriangle } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import {
   getOwnerStoreWithProducts,
@@ -226,6 +226,19 @@ export default function StoreDashboardPage() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
+      {/* Out-of-stock alert */}
+      {products.some((p) => p.stock === 0) && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 text-sm">
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>
+            {products.filter((p) => p.stock === 0).length === 1
+              ? '1 product is out of stock.'
+              : `${products.filter((p) => p.stock === 0).length} products are out of stock.`}{' '}
+            Update their stock to keep selling.
+          </span>
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
@@ -273,6 +286,9 @@ export default function StoreDashboardPage() {
                     <p className="font-medium text-foreground truncate">{product.name}</p>
                     {!product.is_active && (
                       <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Draft</span>
+                    )}
+                    {product.stock === 0 && (
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">Out of stock</span>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">
