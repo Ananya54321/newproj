@@ -1,19 +1,20 @@
 /*
  * Furever × CometChat theme
- * Scoped to .CometChatApp so these override the :root defaults
- * without leaking into the rest of the page.
  *
- * Design tokens:
- *   background  #F7F4EF  (cream)
- *   card/sand   #EDE6DC
- *   primary     #4F5B3A  (olive green)
- *   taupe       #B8ADA3
- *   foreground  #2C2C2C  (charcoal)
+ * Strategy: override CSS variables only.
+ * CometChat's component styles reference these variables consistently,
+ * so all backgrounds, borders, and text automatically align — no
+ * per-component class overrides that cause mismatched colours.
+ *
+ * Tokens:
+ *   primary  #4F5B3A  olive green
+ *   neutral  warm earthy scale (cream → charcoal)
+ *   font     DM Sans
  */
 
 .CometChatApp {
-  /* ── Primary: olive green ─────────────────────────────────────── */
-  --cometchat-primary-color: #4F5B3A;
+  /* Primary: olive green */
+  --cometchat-primary-color:              #4F5B3A;
   --cometchat-extended-primary-color-50:  #F2F5EF;
   --cometchat-extended-primary-color-100: #E5EBE0;
   --cometchat-extended-primary-color-200: #CBD6C1;
@@ -25,121 +26,28 @@
   --cometchat-extended-primary-color-800: #4F5B3A;
   --cometchat-extended-primary-color-900: #384129;
 
-  /* ── Neutral palette: warm earthy tones ──────────────────────── */
+  /* Neutral: warm earthy scale */
   --cometchat-neutral-color-50:  #FFFFFF;
-  --cometchat-neutral-color-100: #F7F4EF;   /* cream – main bg */
-  --cometchat-neutral-color-200: #EDE6DC;   /* sand  – surfaces */
-  --cometchat-neutral-color-300: #E0D9CF;   /* warm dividers */
-  --cometchat-neutral-color-400: #C8BDB3;   /* taupe light */
-  --cometchat-neutral-color-500: #B8ADA3;   /* taupe – muted text */
-  --cometchat-neutral-color-600: #8C8078;   /* secondary text */
-  --cometchat-neutral-color-700: #5B5650;   /* mid text */
-  --cometchat-neutral-color-800: #3D3A36;   /* dark text */
-  --cometchat-neutral-color-900: #2C2C2C;   /* charcoal – primary text */
+  --cometchat-neutral-color-100: #F7F4EF;
+  --cometchat-neutral-color-200: #EDE6DC;
+  --cometchat-neutral-color-300: #E0D9CF;
+  --cometchat-neutral-color-400: #C8BDB3;
+  --cometchat-neutral-color-500: #B8ADA3;
+  --cometchat-neutral-color-600: #8C8078;
+  --cometchat-neutral-color-700: #5B5650;
+  --cometchat-neutral-color-800: #3D3A36;
+  --cometchat-neutral-color-900: #2C2C2C;
 
-  /* ── Font ─────────────────────────────────────────────────────── */
+  /* Font */
   --cometchat-font-family: 'DM Sans', 'Inter', sans-serif;
 
-  /* ── Shimmer ──────────────────────────────────────────────────── */
+  /* Shimmer */
   --cometchat-shimmer-background-color: #E0D9CF;
-  --cometchat-shimmer-gradient-color: linear-gradient(90deg, #E0D9CF 0%, #EDE6DC 100%);
+  --cometchat-shimmer-gradient-color:   linear-gradient(90deg, #E0D9CF 0%, #EDE6DC 100%);
 }
 
-/* ── Root container: match Furever card style ─────────────────────── */
+/* Softer container border — only structural tweak outside variables */
 .CometChatApp .cometchat-root {
-  border: 1px solid #E0D9CF;
+  border-color: #E0D9CF;
   box-shadow: 0 2px 8px 0 rgba(44, 44, 44, 0.06);
-  border-radius: 12px;
-}
-
-/* ── Conversation list sidebar ────────────────────────────────────── */
-.CometChatApp .cometchat-conversations,
-.CometChatApp .cometchat-groups,
-.CometChatApp .cometchat-users,
-.CometChatApp .cometchat-call-logs {
-  background: #F7F4EF;
-  border-right: 1px solid #E0D9CF;
-}
-
-/* ── Search bar ───────────────────────────────────────────────────── */
-.CometChatApp .cometchat-search-bar__input {
-  background: #EDE6DC;
-  border-color: #E0D9CF;
-}
-
-.CometChatApp .cometchat-search-bar__input:focus {
-  border-color: #4F5B3A;
-  outline: none;
-}
-
-/* ── Message area ─────────────────────────────────────────────────── */
-.CometChatApp .cometchat-message-list {
-  background: #F7F4EF;
-}
-
-/* ── Outgoing bubble: olive green (auto via --cometchat-primary-color) ─ */
-
-/* ── Incoming bubble: warm sand ───────────────────────────────────── */
-.CometChatApp .cometchat-message-bubble-incoming .cometchat-message-bubble__body {
-  background: #EDE6DC;
-}
-
-/* ── Message composer ────────────────────────────────────────────── */
-.CometChatApp .cometchat-message-composer {
-  background: #F7F4EF;
-  border-top: 1px solid #E0D9CF;
-}
-
-.CometChatApp .cometchat-message-composer__input {
-  background: #EDE6DC;
-  border-color: #E0D9CF;
-}
-
-.CometChatApp .cometchat-message-composer__input:focus {
-  border-color: #4F5B3A;
-}
-
-/* ── Message header ──────────────────────────────────────────────── */
-.CometChatApp .cometchat-message-header {
-  background: #F7F4EF;
-  border-bottom: 1px solid #E0D9CF;
-}
-
-/* ── List items: hover + active states ───────────────────────────── */
-.CometChatApp .cometchat-list-item:hover {
-  background: #EDE6DC;
-}
-
-.CometChatApp .cometchat-list-item--active,
-.CometChatApp .cometchat-list-item[data-active="true"] {
-  background: #E5EBE0;
-}
-
-/* ── Avatar ring ──────────────────────────────────────────────────── */
-.CometChatApp .cometchat-avatar__image {
-  border-color: #B8ADA3;
-}
-
-/* ── Tabs ──────────────────────────────────────────────────────────── */
-.CometChatApp .cometchat-tabs__tab--active {
-  border-bottom-color: #4F5B3A;
-  color: #4F5B3A;
-}
-
-/* ── Scrollbar ───────────────────────────────────────────────────── */
-.CometChatApp ::-webkit-scrollbar {
-  width: 4px;
-}
-
-.CometChatApp ::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.CometChatApp ::-webkit-scrollbar-thumb {
-  background: #C8BDB3;
-  border-radius: 2px;
-}
-
-.CometChatApp ::-webkit-scrollbar-thumb:hover {
-  background: #B8ADA3;
 }

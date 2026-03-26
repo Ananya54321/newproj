@@ -175,21 +175,10 @@ const CometChatSelector = (props: SelectorProps) => {
     return (
       <div className="cometchat-conversations-header">
         <div className="cometchat-conversations-header__title">{getLocalizedString('conversation_chat_title')}</div>
-        <div className="chat-menu">
-          <CometChatContextMenu
-            useParentContainer
-            closeOnOutsideClick={true}
-            placement={Placement.bottom}
-            data={getOptions() as CometChatOption[]}
-            topMenuSize={1}
-            onOptionClicked={(e: CometChatOption) => {
-              const { onClick } = e;
-              if (onClick) {
-                onClick();
-              }
-            }}
-          />
-        </div>
+        <CometChatButton
+          onClick={() => onNewChatClicked()}
+          iconURL={chatIcon}
+        />
       </div>
     );
   };
