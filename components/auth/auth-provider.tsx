@@ -70,12 +70,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Single auth listener — handles initial session + all future events.
   // Deliberately avoids calling getSession() separately to prevent the
   // concurrent-request lock contention in @supabase/ssr.
+  // NOTE: callback is synchronous — async work fires outside via void IIFE
+  // so Supabase can release its internal auth lock immediately, avoiding
+  // the deadlock where fetchProfile tries to re-enter the Supabase client
+  // while the lock is still held by the listener queue.
   useEffect(() => {
     mounted.current = true
 
     const {
       data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    } = supabaseClient.auth.onAuthStateChange((event, session) => {
       if (!mounted.current) return
 
       if (event === 'SIGNED_OUT' || !session) {
@@ -95,16 +99,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         event === 'TOKEN_REFRESHED' ||
         event === 'USER_UPDATED'
       ) {
-        const profile = await fetchProfile(session.user.id)
-        if (mounted.current) {
-          setState({
-            user: session.user,
-            profile,
-            session,
-            loading: false,
-            error: null,
-          })
-        }
+        // Capture for async closure — run outside the Supabase lock
+        const capturedSession = session
+        void (async () => {
+          const profile = await fetchProfile(capturedSession.user.id)
+          if (mounted.current) {
+            setState({
+              user: capturedSession.user,
+              profile,
+              session: capturedSession,
+              loading: false,
+              error: null,
+            })
+          }
+        })()
       }
     })
 

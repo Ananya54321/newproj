@@ -27,7 +27,7 @@ import { toast } from 'sonner'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Tab = 'overview' | 'verifications' | 'users' | 'emergency' | 'community'
+type Tab = 'overview' | 'verifications' | 'users' | 'emergency' | 'community' | 'returns'
 
 export type EmergencyReport = {
   id: string; title: string; description: string | null; location: string
@@ -42,6 +42,21 @@ export type AdminCommunity = {
   created_at: string; created_by: string | null
 }
 
+export type AdminReturnRequest = {
+  id: string
+  order_id: string
+  reason_type: string
+  reason_note: string | null
+  image_urls: string[]
+  status: string
+  refund_type: string | null
+  refund_amount: number | null
+  admin_notes: string | null
+  created_at: string
+  order: { id: string; total_amount: number; created_at: string; store: { id: string; name: string } | null } | null
+  user: { id: string; full_name: string | null; email: string; avatar_url: string | null } | null
+}
+
 export interface AdminDashboardProps {
   adminId: string
   initialStats: AdminStats
@@ -51,6 +66,7 @@ export interface AdminDashboardProps {
   initialUsers: AdminUser[]
   initialReports: EmergencyReport[]
   initialCommunities: AdminCommunity[]
+  initialReturnRequests: AdminReturnRequest[]
 }
 
 function formatDate(d: string) {
@@ -269,6 +285,13 @@ function VerificationsTab({ adminId, initialVets, initialNGOs, initialStores }: 
                     {vet.years_experience && <span>Exp: <span className="text-foreground">{vet.years_experience}y</span></span>}
                     <span>Applied: <span className="text-foreground">{formatDate(vet.created_at)}</span></span>
                   </div>
+                  {vet.specialty && vet.specialty.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {vet.specialty.map((s) => (
+                        <span key={s} className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{s}</span>
+                      ))}
+                    </div>
+                  )}
                   {rejectTarget?.id === vet.id && rejectTarget.type === 'vet' && (
                     <RejectForm loading={actionLoading === vet.id} onSubmit={(r) => handleRejectVet(vet.id, r)} onCancel={() => setRejectTarget(null)} />
                   )}
@@ -641,6 +664,157 @@ function CommunityTab({ initialCommunities }: { initialCommunities: AdminCommuni
   )
 }
 
+// ─── Returns tab ──────────────────────────────────────────────────────────────
+
+const RETURN_REASON_LABELS: Record<string, string> = {
+  damaged:      'Damaged item',
+  wrong_item:   'Wrong item received',
+  changed_mind: 'Changed mind',
+}
+
+const RETURN_STATUS_COLORS: Record<string, string> = {
+  pending:    'bg-amber-100 text-amber-800',
+  collecting: 'bg-blue-100 text-blue-800',
+  collected:  'bg-purple-100 text-purple-800',
+  approved:   'bg-emerald-100 text-emerald-800',
+  rejected:   'bg-destructive/10 text-destructive',
+  refunded:   'bg-emerald-200 text-emerald-900',
+}
+
+function ReturnsTab({ initialReturnRequests, adminId }: { initialReturnRequests: AdminReturnRequest[]; adminId: string }) {
+  const [requests, setRequests] = useState<AdminReturnRequest[]>(initialReturnRequests)
+  const [actioning, setActioning] = useState<string | null>(null)
+  const [rejectingId, setRejectingId] = useState<string | null>(null)
+
+  void adminId
+
+  const handleAction = async (id: string, action: 'collecting' | 'approved' | 'refunded') => {
+    setActioning(id)
+    const req = requests.find((r) => r.id === id)
+    const updates: Record<string, unknown> = { status: action }
+    if (action === 'approved') {
+      const refundAmt = req?.refund_type === 'full'
+        ? req?.order?.total_amount
+        : (req?.order?.total_amount ?? 0)
+      updates.refund_amount = refundAmt
+    }
+    const { error } = await supabaseClient.from('return_requests').update(updates).eq('id', id)
+    setActioning(null)
+    if (error) { toast.error(error.message); return }
+    setRequests((prev) => prev.map((r) => r.id === id ? { ...r, status: action, ...updates } : r))
+    toast.success('Updated')
+  }
+
+  const handleReject = async (id: string, reason: string) => {
+    setActioning(id)
+    const { error } = await supabaseClient
+      .from('return_requests')
+      .update({ status: 'rejected', admin_notes: reason })
+      .eq('id', id)
+    setActioning(null)
+    if (error) { toast.error(error.message); return }
+    setRequests((prev) => prev.map((r) => r.id === id ? { ...r, status: 'rejected', admin_notes: reason } : r))
+    setRejectingId(null)
+    toast.success('Return rejected')
+  }
+
+  if (requests.length === 0) {
+    return (
+      <div className="py-16 text-center bg-card rounded-2xl boty-shadow">
+        <p className="font-semibold text-foreground">No return requests</p>
+        <p className="text-sm text-muted-foreground mt-1">Customer return requests will appear here.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {requests.map((req) => (
+        <div key={req.id} className="bg-card rounded-2xl p-5 boty-shadow space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Order #{req.order_id.slice(0, 8).toUpperCase()}</p>
+              <p className="font-semibold text-foreground mt-0.5">{req.order?.store?.name ?? 'Unknown store'}</p>
+              <p className="text-xs text-muted-foreground">{req.user?.full_name ?? req.user?.email}</p>
+            </div>
+            <div className="flex flex-col items-end gap-1.5">
+              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${RETURN_STATUS_COLORS[req.status] ?? 'bg-muted text-muted-foreground'}`}>
+                {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+              </span>
+              <span className="text-xs text-muted-foreground">{formatDate(req.created_at)}</span>
+            </div>
+          </div>
+
+          <div className="bg-background rounded-xl p-3 space-y-1">
+            <p className="text-sm font-semibold text-foreground">{RETURN_REASON_LABELS[req.reason_type] ?? req.reason_type}</p>
+            {req.reason_note && <p className="text-sm text-muted-foreground">{req.reason_note}</p>}
+            <p className="text-xs text-muted-foreground">
+              Refund: <span className="font-medium">{req.refund_type === 'full' ? 'Full (incl. delivery)' : 'Product only'}</span>
+              {' '}· Order value: <span className="font-medium">₹{req.order?.total_amount?.toLocaleString()}</span>
+            </p>
+          </div>
+
+          {req.image_urls?.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              {req.image_urls.map((url, i) => (
+                <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="w-16 h-16 rounded-lg object-cover border border-border/40 hover:opacity-80 transition-opacity" />
+                </a>
+              ))}
+            </div>
+          )}
+
+          {req.admin_notes && (
+            <p className="text-xs text-muted-foreground bg-muted rounded-lg px-3 py-2">Admin note: {req.admin_notes}</p>
+          )}
+
+          <div className="flex flex-wrap gap-2 pt-1">
+            {req.status === 'pending' && (
+              <>
+                <button type="button" disabled={actioning === req.id} onClick={() => handleAction(req.id, 'collecting')}
+                  className="text-xs px-3 py-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
+                  Initiate Pickup
+                </button>
+                <button type="button" onClick={() => setRejectingId(rejectingId === req.id ? null : req.id)}
+                  className="text-xs px-3 py-1.5 rounded-full border border-border/60 text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-colors">
+                  Reject
+                </button>
+              </>
+            )}
+            {req.status === 'collected' && req.reason_type !== 'changed_mind' && (
+              <>
+                <button type="button" disabled={actioning === req.id} onClick={() => handleAction(req.id, 'approved')}
+                  className="text-xs px-3 py-1.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors">
+                  Approve Refund
+                </button>
+                <button type="button" onClick={() => setRejectingId(rejectingId === req.id ? null : req.id)}
+                  className="text-xs px-3 py-1.5 rounded-full border border-border/60 text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-colors">
+                  Reject
+                </button>
+              </>
+            )}
+            {req.status === 'approved' && (
+              <button type="button" disabled={actioning === req.id} onClick={() => handleAction(req.id, 'refunded')}
+                className="text-xs px-3 py-1.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors">
+                Mark Refunded
+              </button>
+            )}
+          </div>
+
+          {rejectingId === req.id && (
+            <RejectForm
+              loading={actioning === req.id}
+              onSubmit={(reason) => handleReject(req.id, reason)}
+              onCancel={() => setRejectingId(null)}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 const TAB_META: Record<Tab, { title: string; description: string }> = {
@@ -649,10 +823,11 @@ const TAB_META: Record<Tab, { title: string; description: string }> = {
   users:         { title: 'Users',                description: 'All registered users' },
   emergency:     { title: 'Emergency Reports',    description: 'Monitor and manage animal emergency reports' },
   community:     { title: 'Community Management', description: 'View and moderate communities on the platform' },
+  returns:       { title: 'Return Requests',      description: 'Review and process product return requests' },
 }
 
 function AdminDashboardInner(props: AdminDashboardProps) {
-  const { adminId, initialStats, initialVets, initialNGOs, initialStores, initialUsers, initialReports, initialCommunities } = props
+  const { adminId, initialStats, initialVets, initialNGOs, initialStores, initialUsers, initialReports, initialCommunities, initialReturnRequests } = props
   const searchParams = useSearchParams()
   const tab = (searchParams.get('tab') ?? 'overview') as Tab
   const pendingTotal = initialStats.pendingVets + initialStats.pendingNGOs + initialStats.pendingStores
@@ -665,6 +840,7 @@ function AdminDashboardInner(props: AdminDashboardProps) {
       {tab === 'users'         && <UsersTab initialUsers={initialUsers} />}
       {tab === 'emergency'     && <EmergencyTab initialReports={initialReports} />}
       {tab === 'community'     && <CommunityTab initialCommunities={initialCommunities} />}
+      {tab === 'returns'       && <ReturnsTab initialReturnRequests={initialReturnRequests} adminId={adminId} />}
     </AdminLayout>
   )
 }

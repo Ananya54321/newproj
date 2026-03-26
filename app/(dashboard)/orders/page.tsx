@@ -37,7 +37,8 @@ export default function OrdersPage() {
         setStoreOrders(sOrders)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load orders')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setError((err as any)?.message ?? 'Failed to load orders')
     } finally {
       setLoading(false)
     }

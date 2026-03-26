@@ -1,6 +1,6 @@
 import { supabaseClient } from '@/lib/supabase/client'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Profile, VeterinarianProfile, NgoProfile, Store } from '@/lib/auth/types'
+import type { Profile, VeterinarianProfile, NgoProfile, Store, Pet } from '@/lib/auth/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -9,6 +9,7 @@ export interface PublicProfileData {
   vet?: VeterinarianProfile | null
   ngo?: NgoProfile | null
   store?: Store | null
+  pets?: Pet[]
 }
 
 // ─── Queries ─────────────────────────────────────────────────────────────────
@@ -50,6 +51,13 @@ export async function getProfileBySlug(
       .eq('is_active', true)
       .maybeSingle()
     result.store = (store as Store | null) ?? null
+  } else if (profile.role === 'user') {
+    const { data: pets } = await client
+      .from('pets')
+      .select('id, name, species, breed, birth_date, avatar_url')
+      .eq('owner_id', profile.id)
+      .order('created_at', { ascending: false })
+    result.pets = (pets as Pet[] | null) ?? []
   }
 
   return result

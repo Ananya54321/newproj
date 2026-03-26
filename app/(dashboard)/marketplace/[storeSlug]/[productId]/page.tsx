@@ -51,6 +51,7 @@ export default function ProductDetailPage() {
         description: product.description ?? '',
         price: product.price,
         image: images[0] ?? '/placeholder.svg',
+        stock: product.stock,
         storeId: product.store_id,
         storeSlug: product.store?.slug ?? product.store_id,
       })

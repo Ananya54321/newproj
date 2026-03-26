@@ -27,36 +27,24 @@ export async function middleware(request: NextRequest) {
 
   const supabase = createMiddlewareSupabaseClient(request, response)
 
-  // ── Verify the session ────────────────────────────────────────────────
-  const { data: { session } } = await supabase.auth.getSession()
+  // ── Single auth check via getUser (avoids double lock acquisition) ────
+  const { data: { user } } = await supabase.auth.getUser()
 
   const isProtected = matchesPrefix(pathname, PROTECTED_PATHS)
   const isAuthPage = matchesPrefix(pathname, AUTH_PATHS)
 
   // ── Protected routes: must be authenticated ───────────────────────────
-  if (isProtected) {
-    if (!session) {
-      const loginUrl = new URL('/login', request.url)
-      loginUrl.searchParams.set('redirectTo', pathname)
-      return NextResponse.redirect(loginUrl, { headers: response.headers })
-    }
-
-    // Validate that the user actually exists (not a stale token)
-    const { data: { user }, error } = await supabase.auth.getUser()
-    if (error || !user) {
-      const loginUrl = new URL('/login', request.url)
-      return NextResponse.redirect(loginUrl, { headers: response.headers })
-    }
+  if (isProtected && !user) {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('redirectTo', pathname)
+    return NextResponse.redirect(loginUrl, { headers: response.headers })
   }
 
   // ── Auth pages: redirect authenticated users to dashboard ─────────────
-  if (isAuthPage && session) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      return NextResponse.redirect(new URL('/dashboard', request.url), {
-        headers: response.headers,
-      })
-    }
+  if (isAuthPage && user) {
+    return NextResponse.redirect(new URL('/dashboard', request.url), {
+      headers: response.headers,
+    })
   }
 
   return response

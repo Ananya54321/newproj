@@ -515,6 +515,77 @@ export async function adminDeletePost(
   return { error: error?.message ?? null }
 }
 
+// ─── Return request management ───────────────────────────────────────────────
+
+export async function getAdminReturnRequests(client: SupabaseClient) {
+  const { data, error } = await client
+    .from('return_requests')
+    .select(`
+      *,
+      order:orders!return_requests_order_id_fkey(
+        id, total_amount, created_at,
+        store:stores!orders_store_id_fkey(id, name)
+      ),
+      user:profiles!return_requests_user_id_fkey(id, full_name, email, avatar_url)
+    `)
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  if (error) return []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return ((data ?? []) as any[]).map((r) => ({
+    ...r,
+    order: Array.isArray(r.order) ? r.order[0] : r.order,
+    user: Array.isArray(r.user) ? r.user[0] : r.user,
+  }))
+}
+
+export async function adminApproveReturn(
+  returnId: string,
+  refundAmount: number,
+  client: SupabaseClient
+): Promise<{ error: string | null }> {
+  const { error } = await client
+    .from('return_requests')
+    .update({ status: 'approved', refund_amount: refundAmount })
+    .eq('id', returnId)
+  return { error: error?.message ?? null }
+}
+
+export async function adminRejectReturn(
+  returnId: string,
+  adminNotes: string,
+  client: SupabaseClient
+): Promise<{ error: string | null }> {
+  const { error } = await client
+    .from('return_requests')
+    .update({ status: 'rejected', admin_notes: adminNotes })
+    .eq('id', returnId)
+  return { error: error?.message ?? null }
+}
+
+export async function adminMarkReturnCollecting(
+  returnId: string,
+  client: SupabaseClient
+): Promise<{ error: string | null }> {
+  const { error } = await client
+    .from('return_requests')
+    .update({ status: 'collecting' })
+    .eq('id', returnId)
+  return { error: error?.message ?? null }
+}
+
+export async function adminMarkReturnRefunded(
+  returnId: string,
+  client: SupabaseClient
+): Promise<{ error: string | null }> {
+  const { error } = await client
+    .from('return_requests')
+    .update({ status: 'refunded' })
+    .eq('id', returnId)
+  return { error: error?.message ?? null }
+}
+
 // ─── Emergency management ─────────────────────────────────────────────────────
 
 export async function getAllEmergencyReports(client: SupabaseClient) {

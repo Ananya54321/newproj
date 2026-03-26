@@ -9,6 +9,9 @@ import type {
   CommentWithMeta,
   Notification,
   PostType,
+  CommunityEvent,
+  CommunityEventWithCreator,
+  CommunityEventType,
 } from '@/lib/auth/types'
 
 // ─── Form data ────────────────────────────────────────────────────────────────
@@ -476,6 +479,58 @@ function normalizePost(raw: any): PostWithMeta {
 function normalizeComment(raw: any): CommentWithMeta {
   const author = Array.isArray(raw.author) ? raw.author[0] : raw.author
   return { ...raw, author, user_vote: null, replies: [] } as CommentWithMeta
+}
+
+// ─── Community Events ─────────────────────────────────────────────────────────
+
+export interface CommunityEventFormData {
+  title: string
+  description?: string | null
+  type: CommunityEventType
+  location?: string | null
+  event_date: string
+  image_url?: string | null
+  registration_url?: string | null
+}
+
+export async function getCommunityEvents(
+  communityId: string,
+  client: SupabaseClient = supabaseClient
+): Promise<CommunityEventWithCreator[]> {
+  const { data, error } = await client
+    .from('community_events')
+    .select(`*, creator:profiles!community_events_creator_id_fkey(id, full_name, avatar_url)`)
+    .eq('community_id', communityId)
+    .eq('is_active', true)
+    .order('event_date', { ascending: true })
+  if (error) throw error
+  return ((data ?? []) as unknown[]).map((raw) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const r = raw as any
+    return { ...r, creator: Array.isArray(r.creator) ? r.creator[0] : r.creator }
+  }) as CommunityEventWithCreator[]
+}
+
+export async function createCommunityEvent(
+  data: CommunityEventFormData,
+  communityId: string,
+  creatorId: string
+): Promise<{ event: CommunityEvent | null; error: string | null }> {
+  const { data: event, error } = await supabaseClient
+    .from('community_events')
+    .insert({ ...data, community_id: communityId, creator_id: creatorId })
+    .select()
+    .single()
+  if (error) return { event: null, error: error.message }
+  return { event: event as CommunityEvent, error: null }
+}
+
+export async function deleteCommunityEvent(eventId: string): Promise<{ error: string | null }> {
+  const { error } = await supabaseClient
+    .from('community_events')
+    .update({ is_active: false })
+    .eq('id', eventId)
+  return { error: error?.message ?? null }
 }
 
 // ─── Utilities ────────────────────────────────────────────────────────────────

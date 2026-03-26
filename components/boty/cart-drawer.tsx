@@ -64,7 +64,7 @@ export function CartDrawer() {
                     <p className="text-muted-foreground mb-3 text-sm line-clamp-1">{item.description}</p>
 
                     {/* Quantity Controls */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <div className="flex items-center border border-border rounded-full">
                         <button
                           type="button"
@@ -78,12 +78,16 @@ export function CartDrawer() {
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="p-1.5 hover:bg-muted boty-transition rounded-r-full"
+                          disabled={item.quantity >= item.stock}
+                          className="p-1.5 hover:bg-muted boty-transition rounded-r-full disabled:opacity-40 disabled:cursor-not-allowed"
                           aria-label="Increase quantity"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
                       </div>
+                      {item.quantity >= item.stock && (
+                        <span className="text-xs text-amber-600 font-medium">Max</span>
+                      )}
 
                       <button
                         type="button"

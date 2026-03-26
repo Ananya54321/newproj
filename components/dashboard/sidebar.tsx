@@ -75,9 +75,30 @@ export function DashboardSidebar() {
   const { signOut, profile, user, loading } = useAuth()
   const { setIsOpen: openCart, itemCount } = useCart()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
 
-  // Still fetching auth state
-  if (loading) return null
+  // Still fetching auth state — render a skeleton placeholder so layout doesn't shift
+  if (loading) {
+    return (
+      <>
+        <aside className="hidden lg:flex flex-col w-56 xl:w-60 h-screen border-r border-border/60 bg-card shrink-0 animate-pulse">
+          <div className="px-4 py-5 border-b border-border/60">
+            <div className="h-5 w-24 rounded bg-secondary mb-1" />
+            <div className="h-3 w-32 rounded bg-secondary" />
+          </div>
+          <nav className="flex-1 px-3 py-4 space-y-1">
+            {[...Array(7)].map((_, i) => (
+              <div key={i} className="h-9 rounded-lg bg-secondary" />
+            ))}
+          </nav>
+        </aside>
+        {/* Mobile: keep hamburger area visible during auth loading */}
+        <div className="lg:hidden fixed top-4 left-4 z-40 p-2 rounded-lg bg-card border border-border/60 shadow-sm animate-pulse">
+          <div className="w-5 h-5 rounded bg-secondary" />
+        </div>
+      </>
+    )
+  }
 
   // Admin has their own top bar; unauthenticated handled by layout
   if (!user || profile?.role === 'admin') return null
@@ -85,9 +106,10 @@ export function DashboardSidebar() {
   const nav = NAV_BY_ROLE[profile?.role ?? 'user'] ?? NAV_BY_ROLE.user
 
   const handleSignOut = async () => {
-    await signOut()
-    toast.success('You have been signed out.')
-    window.location.href = '/'
+    if (signingOut) return
+    setSigningOut(true)
+    // signOut() triggers SIGNED_OUT in SessionSync which clears cookies + redirects
+    await signOut().catch(() => {})
   }
 
   const sidebarContent = (
@@ -160,10 +182,11 @@ export function DashboardSidebar() {
         <button
           type="button"
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full"
+          disabled={signingOut}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-foreground/6 hover:text-foreground transition-colors w-full disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <LogOut className="w-4 h-4 shrink-0" />
-          Sign Out
+          {signingOut ? 'Signing out…' : 'Sign Out'}
         </button>
       </div>
     </div>
@@ -172,7 +195,7 @@ export function DashboardSidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-56 xl:w-60 min-h-screen border-r border-border/60 bg-card shrink-0">
+      <aside className="hidden lg:flex flex-col w-56 xl:w-60 h-screen border-r border-border/60 bg-card shrink-0">
         {sidebarContent}
       </aside>
 

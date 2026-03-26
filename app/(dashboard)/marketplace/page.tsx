@@ -22,6 +22,7 @@ export default function MarketplacePage() {
     setLoading(true)
     getProducts({ category: selectedCategory, search: search || undefined })
       .then(setProducts)
+      .catch(() => setProducts([]))
       .finally(() => setLoading(false))
   }, [selectedCategory, search])
 

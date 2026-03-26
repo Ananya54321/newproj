@@ -29,6 +29,7 @@ export function ProductCard({ product, index = 0, isVisible = true }: ProductCar
       description: product.description ?? '',
       price: product.price,
       image: firstImage ?? '/placeholder.svg',
+      stock: product.stock,
       storeId: product.store_id,
       storeSlug: storeSlug,
     })
@@ -46,7 +47,7 @@ export function ProductCard({ product, index = 0, isVisible = true }: ProductCar
         {/* Image */}
         <div className="relative aspect-square bg-muted overflow-hidden">
           <div
-            className={`absolute inset-0 bg-gradient-to-br from-muted via-muted/50 to-muted animate-pulse transition-opacity duration-500 ${
+            className={`absolute inset-0 bg-linear-to-br from-muted via-muted/50 to-muted animate-pulse transition-opacity duration-500 ${
               imageLoaded ? 'opacity-0' : 'opacity-100'
             }`}
           />

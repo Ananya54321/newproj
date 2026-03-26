@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { getProfileBySlug } from '@/lib/profiles/service'
 import { ROLE_LABELS } from '@/lib/auth/types'
-import { User, Stethoscope, Heart, Store, Globe, Instagram, MapPin, CalendarDays, ExternalLink } from 'lucide-react'
+import { User, Stethoscope, Heart, Store, Globe, Instagram, MapPin, CalendarDays, ExternalLink, PawPrint } from 'lucide-react'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -28,7 +28,7 @@ export default async function PublicProfilePage({ params }: Props) {
 
   if (!data || data.profile.role === 'admin') notFound()
 
-  const { profile, vet, ngo, store } = data
+  const { profile, vet, ngo, store, pets } = data
   const name = profile.full_name ?? slug
 
   return (
@@ -151,6 +151,34 @@ export default async function PublicProfilePage({ params }: Props) {
                 Donate
               </Link>
             )}
+          </div>
+        )}
+
+        {/* Pets section (regular users) */}
+        {profile.role === 'user' && pets && pets.length > 0 && (
+          <div className="bg-card rounded-2xl p-6 boty-shadow space-y-4">
+            <h2 className="font-semibold text-foreground flex items-center gap-2">
+              <PawPrint className="w-4 h-4 text-primary" />
+              Pets
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {pets.map((pet) => (
+                <div key={pet.id} className="flex items-center gap-3 p-3 rounded-xl bg-background border border-border/40">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                    {pet.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={pet.avatar_url} alt={pet.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <PawPrint className="w-5 h-5 text-primary/50" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{pet.name}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{pet.species}{pet.breed ? ` · ${pet.breed}` : ''}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

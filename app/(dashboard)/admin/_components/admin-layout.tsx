@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { LayoutDashboard, ShieldCheck, Users, AlertTriangle, MessageSquare } from 'lucide-react'
+import { LayoutDashboard, ShieldCheck, Users, AlertTriangle, MessageSquare, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AdminTopBar } from './admin-top-bar'
 
@@ -11,6 +11,7 @@ const ADMIN_TABS = [
   { label: 'Users',         tab: 'users',         icon: Users },
   { label: 'Emergency',     tab: 'emergency',     icon: AlertTriangle },
   { label: 'Community',     tab: 'community',     icon: MessageSquare },
+  { label: 'Returns',       tab: 'returns',       icon: RotateCcw },
 ]
 
 interface AdminLayoutProps {

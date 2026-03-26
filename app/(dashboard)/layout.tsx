@@ -14,10 +14,10 @@ export default async function DashboardLayout({
   if (!user) redirect('/login')
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
       <AdminRedirect />
       <DashboardSidebar />
-      <main className="flex-1 flex flex-col min-h-screen overflow-auto">
+      <main className="flex-1 flex flex-col overflow-y-auto">
         {children}
       </main>
       <CartDrawer />

@@ -161,12 +161,12 @@ export function AppointmentBookingForm({ vet, pets }: AppointmentBookingFormProp
       {pets.length > 0 && (
         <div>
           <Label className="mb-1.5 block">Which pet? (optional)</Label>
-          <Select value={petId ?? ''} onValueChange={(v) => setPetId(v || null)}>
+          <Select value={petId ?? 'none'} onValueChange={(v) => setPetId(v === 'none' ? null : v)}>
             <SelectTrigger>
               <SelectValue placeholder="Select a pet..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No specific pet</SelectItem>
+              <SelectItem value="none">No specific pet</SelectItem>
               {pets.map((p) => (
                 <SelectItem key={p.id} value={p.id}>
                   {p.name} ({p.species})

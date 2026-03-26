@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient, createServerSupabaseAdminClient } from '@/lib/supabase/server'
 import {
   getAdminStats, getPendingVets, getPendingNGOs, getPendingStores,
-  getUsers, getAllEmergencyReports, getAdminCommunities,
+  getUsers, getAllEmergencyReports, getAdminCommunities, getAdminReturnRequests,
 } from '@/lib/admin/service'
 import { AdminDashboard } from './_components/admin-dashboard'
 
@@ -21,7 +21,7 @@ export default async function AdminPage() {
 
   // Fetch all tab data in parallel using the admin client (bypasses RLS)
   const adminClient = createServerSupabaseAdminClient()
-  const [stats, pendingVets, pendingNGOs, pendingStores, users, emergencyReports, communities] =
+  const [stats, pendingVets, pendingNGOs, pendingStores, users, emergencyReports, communities, returnRequests] =
     await Promise.all([
       getAdminStats(adminClient),
       getPendingVets(adminClient),
@@ -30,6 +30,7 @@ export default async function AdminPage() {
       getUsers(adminClient),
       getAllEmergencyReports(adminClient),
       getAdminCommunities(adminClient),
+      getAdminReturnRequests(adminClient),
     ])
 
   return (
@@ -44,6 +45,8 @@ export default async function AdminPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       initialCommunities={communities as any[]}
       initialUsers={users}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      initialReturnRequests={returnRequests as any[]}
     />
   )
 }

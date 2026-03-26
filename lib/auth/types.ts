@@ -12,6 +12,9 @@ export type PetSpecies = 'dog' | 'cat' | 'bird' | 'rabbit' | 'fish' | 'reptile' 
 // Phase 5 types
 export type ProductCategory = 'food' | 'treats' | 'toys' | 'accessories' | 'grooming' | 'health' | 'bedding' | 'other'
 export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+export type ReturnReasonType = 'damaged' | 'wrong_item' | 'changed_mind'
+export type ReturnStatus = 'pending' | 'collecting' | 'collected' | 'approved' | 'rejected' | 'refunded'
+export type CommunityEventType = 'meetup' | 'social' | 'training' | 'other'
 
 // Phase 6 types
 export type PostType = 'text' | 'image' | 'link'
@@ -216,6 +219,58 @@ export interface OrderWithItems extends Order {
   items: (OrderItem & { product: Pick<Product, 'id' | 'name' | 'images'> | null })[]
   store: Pick<Store, 'id' | 'name' | 'slug' | 'logo_url'>
   user: Pick<Profile, 'id' | 'full_name' | 'email'>
+}
+
+export interface ReturnRequest {
+  id: string
+  order_id: string
+  user_id: string
+  reason_type: ReturnReasonType
+  reason_note: string | null
+  image_urls: string[]
+  status: ReturnStatus
+  refund_type: 'full' | 'product_only' | null
+  refund_amount: number | null
+  admin_notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ReturnRequestWithOrder extends ReturnRequest {
+  order: Pick<Order, 'id' | 'total_amount' | 'created_at'> & {
+    store: Pick<Store, 'id' | 'name'>
+    items: (OrderItem & { product: Pick<Product, 'id' | 'name' | 'images'> | null })[]
+  }
+  user: Pick<Profile, 'id' | 'full_name' | 'email' | 'avatar_url'>
+}
+
+export const RETURN_STATUS_CONFIG: Record<ReturnStatus, { label: string; color: string }> = {
+  pending:    { label: 'Return Requested', color: 'bg-amber-100 text-amber-800' },
+  collecting: { label: 'Awaiting Pickup',  color: 'bg-blue-100 text-blue-800' },
+  collected:  { label: 'Item Collected',   color: 'bg-purple-100 text-purple-800' },
+  approved:   { label: 'Refund Approved',  color: 'bg-emerald-100 text-emerald-800' },
+  rejected:   { label: 'Return Rejected',  color: 'bg-destructive/10 text-destructive' },
+  refunded:   { label: 'Refunded',         color: 'bg-emerald-200 text-emerald-900' },
+}
+
+export interface CommunityEvent {
+  id: string
+  community_id: string
+  creator_id: string
+  title: string
+  description: string | null
+  type: CommunityEventType
+  location: string | null
+  event_date: string
+  image_url: string | null
+  registration_url: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface CommunityEventWithCreator extends CommunityEvent {
+  creator: Pick<Profile, 'id' | 'full_name' | 'avatar_url'>
 }
 
 // ─── Phase 6 domain models ────────────────────────────────────────────────────

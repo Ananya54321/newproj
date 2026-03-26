@@ -2,14 +2,17 @@
 
 import Image from 'next/image'
 import { useState } from 'react'
-import { Package, Truck, MapPin, Star } from 'lucide-react'
-import { ORDER_STATUS_CONFIG } from '@/lib/auth/types'
-import type { OrderWithItems, OrderStatus } from '@/lib/auth/types'
-import { updateOrderStatus, markOrderDelivered, formatPrice } from '@/lib/marketplace/service'
+import { Package, Truck, MapPin, Star, RotateCcw } from 'lucide-react'
+import { ORDER_STATUS_CONFIG, RETURN_STATUS_CONFIG } from '@/lib/auth/types'
+import type { OrderWithItems, OrderStatus, ReturnRequest } from '@/lib/auth/types'
+import { updateOrderStatus, markOrderDelivered, formatPrice, getReturnEligibility, getReturnRequestByOrder } from '@/lib/marketplace/service'
 import { DispatchModal } from './dispatch-modal'
 import { ProductReviewForm } from './product-review-form'
+import { ReturnRequestForm } from './return-request-form'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/use-auth'
+import { useEffect } from 'react'
 
 interface OrderCardProps {
   order: OrderWithItems
@@ -27,10 +30,27 @@ const STORE_OWNER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
 }
 
 export function OrderCard({ order, isStoreOwner = false, onStatusChange }: OrderCardProps) {
+  const { user } = useAuth()
   const [updating, setUpdating] = useState(false)
   const [showDispatch, setShowDispatch] = useState(false)
+  const [showReturn, setShowReturn] = useState(false)
   const [reviewProductId, setReviewProductId] = useState<string | null>(null)
+  const [existingReturn, setExistingReturn] = useState<ReturnRequest | null | undefined>(undefined)
   const config = ORDER_STATUS_CONFIG[order.status]
+
+  // Check for existing return request on delivered orders
+  useEffect(() => {
+    if (!isStoreOwner && order.status === 'delivered') {
+      getReturnRequestByOrder(order.id).then(setExistingReturn)
+    }
+  }, [order.id, order.status, isStoreOwner])
+
+  // Determine first item category for return eligibility check
+  const firstItemCategory = (order.items[0]?.product as unknown as { category?: string })?.category
+
+  // Use order.updated_at as a proxy for delivery date when status is delivered
+  const deliveredAt = order.status === 'delivered' ? order.updated_at : null
+  const returnCheck = getReturnEligibility(firstItemCategory, deliveredAt, existingReturn !== null && existingReturn !== undefined)
 
   const handleStatusChange = async (status: OrderStatus) => {
     setUpdating(true)
@@ -198,6 +218,25 @@ export function OrderCard({ order, isStoreOwner = false, onStatusChange }: Order
               Mark as Received
             </Button>
           )}
+
+          {/* Customer: return request (delivered, within 7 days) */}
+          {!isStoreOwner && order.status === 'delivered' && existingReturn === null && returnCheck.eligible && (
+            <button
+              type="button"
+              onClick={() => setShowReturn(true)}
+              className="text-xs px-3 py-1.5 rounded-full border border-border/60 text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors flex items-center gap-1.5"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Request Return
+            </button>
+          )}
+
+          {/* Show existing return status */}
+          {!isStoreOwner && existingReturn && (
+            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${RETURN_STATUS_CONFIG[existingReturn.status].color}`}>
+              {RETURN_STATUS_CONFIG[existingReturn.status].label}
+            </span>
+          )}
         </div>
       </div>
 
@@ -210,6 +249,19 @@ export function OrderCard({ order, isStoreOwner = false, onStatusChange }: Order
             onStatusChange?.()
           }}
           onClose={() => setShowDispatch(false)}
+        />
+      )}
+
+      {/* Return request modal */}
+      {showReturn && user && (
+        <ReturnRequestForm
+          order={order}
+          userId={user.id}
+          onSuccess={() => {
+            setShowReturn(false)
+            getReturnRequestByOrder(order.id).then(setExistingReturn)
+          }}
+          onClose={() => setShowReturn(false)}
         />
       )}
     </>

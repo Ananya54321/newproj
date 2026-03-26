@@ -10,6 +10,10 @@ import type {
   ProductCategory,
   ProductReview,
   ProductReviewWithUser,
+  ReturnRequest,
+  ReturnRequestWithOrder,
+  ReturnReasonType,
+  ReturnStatus,
 } from '@/lib/auth/types'
 
 // ─── Form data ────────────────────────────────────────────────────────────────
@@ -268,7 +272,14 @@ export async function updateOrderStatus(
     .from('orders')
     .update({ status })
     .eq('id', orderId)
-  return { error: error?.message ?? null }
+  if (error) return { error: error.message }
+
+  // Deduct stock when store owner confirms the order
+  if (status === 'confirmed') {
+    await deductOrderStock(orderId)
+  }
+
+  return { error: null }
 }
 
 // ─── Checkout ─────────────────────────────────────────────────────────────────
@@ -421,5 +432,199 @@ export function formatPrice(price: number): string {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(price)
 }
 
+// ─── Stock deduction ─────────────────────────────────────────────────────────
+
+/** Deducts stock for all items in an order. Called when store owner confirms. */
+export async function deductOrderStock(orderId: string): Promise<{ error: string | null }> {
+  // Fetch order items
+  const { data: items, error: fetchError } = await supabaseClient
+    .from('order_items')
+    .select('product_id, quantity')
+    .eq('order_id', orderId)
+  if (fetchError) return { error: fetchError.message }
+  if (!items?.length) return { error: null }
+
+  // Decrement each product's stock
+  for (const item of items) {
+    const { error } = await supabaseClient.rpc('decrement_product_stock', {
+      p_product_id: item.product_id,
+      p_qty: item.quantity,
+    })
+    if (error) {
+      // Fallback: manual decrement if RPC not available
+      const { data: product } = await supabaseClient
+        .from('products')
+        .select('stock')
+        .eq('id', item.product_id)
+        .single()
+      if (product) {
+        await supabaseClient
+          .from('products')
+          .update({ stock: Math.max(0, product.stock - item.quantity) })
+          .eq('id', item.product_id)
+      }
+    }
+  }
+  return { error: null }
+}
+
+// ─── Return policy ───────────────────────────────────────────────────────────
+
+export type ReturnEligibility = 'eligible' | 'conditional' | 'ineligible'
+
+/** Return policy by product category */
+export const RETURN_POLICY: Record<string, ReturnEligibility> = {
+  toys:        'eligible',
+  accessories: 'eligible',
+  grooming:    'eligible',
+  bedding:     'eligible',
+  other:       'eligible',
+  food:        'conditional',   // only if unopened
+  treats:      'conditional',   // only if unopened
+  health:      'ineligible',    // medicines/medical supplies
+}
+
+export function getReturnEligibility(
+  category: string | null | undefined,
+  deliveredAt: string | null,
+  existingReturn?: boolean
+): { eligible: boolean; reason: string } {
+  if (existingReturn) return { eligible: false, reason: 'A return has already been requested for this order.' }
+
+  // Check 7-day window
+  if (!deliveredAt) return { eligible: false, reason: 'Delivery date not confirmed.' }
+  const daysSince = (Date.now() - new Date(deliveredAt).getTime()) / 86_400_000
+  if (daysSince > 7) return { eligible: false, reason: 'The 7-day return window has passed.' }
+
+  const policy = RETURN_POLICY[category ?? 'other'] ?? 'eligible'
+  if (policy === 'ineligible') return { eligible: false, reason: 'This product category is non-returnable (medicines / opened consumables).' }
+  if (policy === 'conditional') return { eligible: true, reason: 'Returnable only if unopened and in original packaging.' }
+  return { eligible: true, reason: '' }
+}
+
+// ─── Return request mutations ─────────────────────────────────────────────────
+
+export interface ReturnFormData {
+  order_id: string
+  reason_type: ReturnReasonType
+  reason_note?: string | null
+  image_urls?: string[]
+}
+
+export async function createReturnRequest(
+  data: ReturnFormData,
+  userId: string
+): Promise<{ request: ReturnRequest | null; error: string | null }> {
+  const refundType = data.reason_type === 'changed_mind' ? 'product_only' : 'full'
+  const { data: req, error } = await supabaseClient
+    .from('return_requests')
+    .insert({
+      order_id: data.order_id,
+      user_id: userId,
+      reason_type: data.reason_type,
+      reason_note: data.reason_note ?? null,
+      image_urls: data.image_urls ?? [],
+      status: 'pending',
+      refund_type: refundType,
+    })
+    .select()
+    .single()
+  if (error) return { request: null, error: error.message }
+  return { request: req as ReturnRequest, error: null }
+}
+
+export async function getUserReturnRequests(
+  userId: string,
+  client: SupabaseClient = supabaseClient
+): Promise<ReturnRequest[]> {
+  const { data, error } = await client
+    .from('return_requests')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as ReturnRequest[]
+}
+
+export async function getReturnRequestByOrder(
+  orderId: string,
+  client: SupabaseClient = supabaseClient
+): Promise<ReturnRequest | null> {
+  const { data } = await client
+    .from('return_requests')
+    .select('*')
+    .eq('order_id', orderId)
+    .maybeSingle()
+  return (data as ReturnRequest | null) ?? null
+}
+
+// ─── Admin return functions ───────────────────────────────────────────────────
+
+const RETURN_REQUEST_ADMIN_SELECT = `
+  *,
+  order:orders!return_requests_order_id_fkey(
+    id, total_amount, created_at,
+    store:stores!orders_store_id_fkey(id, name),
+    items:order_items(*, product:products!order_items_product_id_fkey(id, name, images))
+  ),
+  user:profiles!return_requests_user_id_fkey(id, full_name, email, avatar_url)
+`
+
+export async function getAdminReturnRequests(
+  client: SupabaseClient = supabaseClient
+): Promise<ReturnRequestWithOrder[]> {
+  const { data, error } = await client
+    .from('return_requests')
+    .select(RETURN_REQUEST_ADMIN_SELECT)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ((data ?? []) as unknown[]).map((raw) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const r = raw as any
+    const order = Array.isArray(r.order) ? r.order[0] : r.order
+    const user = Array.isArray(r.user) ? r.user[0] : r.user
+    if (order) {
+      order.store = Array.isArray(order.store) ? order.store[0] : order.store
+      order.items = (order.items ?? []).map((i: Record<string, unknown>) => ({
+        ...i,
+        product: Array.isArray(i.product) ? (i.product as unknown[])[0] : i.product,
+      }))
+    }
+    return { ...r, order, user } as ReturnRequestWithOrder
+  })
+}
+
+export async function updateReturnStatus(
+  returnId: string,
+  status: ReturnStatus,
+  adminNotes?: string | null
+): Promise<{ error: string | null }> {
+  const { error } = await supabaseClient
+    .from('return_requests')
+    .update({ status, ...(adminNotes !== undefined ? { admin_notes: adminNotes } : {}) })
+    .eq('id', returnId)
+  return { error: error?.message ?? null }
+}
+
+export async function markReturnCollected(returnId: string): Promise<{ error: string | null }> {
+  // Fetch return request to check reason_type
+  const { data: req } = await supabaseClient
+    .from('return_requests')
+    .select('reason_type, refund_amount, order:orders!return_requests_order_id_fkey(total_amount)')
+    .eq('id', returnId)
+    .single()
+
+  const isAutoRefund = req?.reason_type === 'changed_mind'
+  const newStatus: ReturnStatus = isAutoRefund ? 'refunded' : 'collected'
+
+  const { error } = await supabaseClient
+    .from('return_requests')
+    .update({ status: newStatus })
+    .eq('id', returnId)
+
+  return { error: error?.message ?? null }
+}
+
 // Suppress unused import warnings
 void (undefined as unknown as Order)
+void (undefined as unknown as ReturnRequestWithOrder)
