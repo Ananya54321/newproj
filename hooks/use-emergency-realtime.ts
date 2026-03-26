@@ -26,7 +26,7 @@ export function useEmergencyRealtime(options: UseEmergencyOptions = {}) {
   const optionsRef = useRef(options)
   optionsRef.current = options
 
-  // Full load with spinner - used on mount and manual reload only
+  // Full load with spinner — used on mount and manual reload only
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -40,13 +40,13 @@ export function useEmergencyRealtime(options: UseEmergencyOptions = {}) {
     }
   }, [])
 
-  // Silent background refresh - no spinner, used by realtime + post-action
+  // Silent background refresh — no spinner, used by realtime + post-action
   const silentRefresh = useCallback(async () => {
     try {
       const data = await getEmergencyReports(supabaseClient, optionsRef.current)
       setReports(data)
     } catch {
-      // silent - don't disrupt the UI on background errors
+      // silent — don't disrupt the UI on background errors
     }
   }, [])
 

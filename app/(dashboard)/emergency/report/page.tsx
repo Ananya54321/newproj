@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ReportForm } from '@/components/emergency/report-form'
 
-export const metadata = { title: 'Submit Emergency Report - Furever' }
+export const metadata = { title: 'Submit Emergency Report — Furever' }
 
 export default function ReportEmergencyPage() {
   return (
