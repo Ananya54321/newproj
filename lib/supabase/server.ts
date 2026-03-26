@@ -25,7 +25,7 @@ export async function createServerSupabaseClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // Called from a Server Component - middleware handles session refresh.
+            // Called from a Server Component — middleware handles session refresh.
           }
         },
       },
@@ -58,7 +58,7 @@ export function createServerSupabaseAdminClient() {
 }
 
 /**
- * Middleware Supabase client - reads cookies from the request,
+ * Middleware Supabase client — reads cookies from the request,
  * writes updated cookies to the response.
  */
 export function createMiddlewareSupabaseClient(

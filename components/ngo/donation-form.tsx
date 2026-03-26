@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import { Heart, Loader2 } from 'lucide-react'
 import { createDonation } from '@/lib/ngo/service'
+import { initiateRazorpayPayment } from '@/lib/razorpay/utils'
 import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 
 const PRESET_AMOUNTS = [100, 250, 500, 1000, 2500]
+const IS_PROD = process.env.NEXT_PUBLIC_STAGE === 'prod'
 
 interface DonationFormProps {
   ngoId: string
@@ -22,26 +24,51 @@ export function DonationForm({ ngoId, ngoName, onSuccess }: DonationFormProps) {
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
+  const recordDonation = async () => {
+    const { error } = await createDonation(
+      { ngo_id: ngoId, amount: Number(amount), message: message || null, is_anonymous: isAnonymous },
+      user!.id
+    )
+    if (error) {
+      toast.error(error)
+      return false
+    }
+    toast.success(`Thank you for donating ₹${amount} to ${ngoName}!`)
+    setAmount('')
+    setMessage('')
+    onSuccess?.()
+    return true
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user?.id) { toast.error('Please sign in to donate'); return }
     if (!amount || Number(amount) <= 0) { toast.error('Enter a valid amount'); return }
 
     setSubmitting(true)
-    const { error } = await createDonation(
-      { ngo_id: ngoId, amount: Number(amount), message: message || null, is_anonymous: isAnonymous },
-      user.id
-    )
-    setSubmitting(false)
 
-    if (error) {
-      toast.error(error)
+    if (IS_PROD) {
+      try {
+        const result = await initiateRazorpayPayment({
+          amountInRupees: Number(amount),
+          name: 'Furever',
+          description: `Donation to ${ngoName}`,
+          prefill: { name: user.user_metadata?.full_name, email: user.email },
+        })
+        if (!result) {
+          // User dismissed the modal
+          setSubmitting(false)
+          return
+        }
+        await recordDonation()
+      } catch (err) {
+        toast.error((err as Error).message ?? 'Payment failed')
+      }
     } else {
-      toast.success(`Thank you for donating ₹${amount} to ${ngoName}!`)
-      setAmount('')
-      setMessage('')
-      onSuccess?.()
+      await recordDonation()
     }
+
+    setSubmitting(false)
   }
 
   return (
@@ -120,14 +147,10 @@ export function DonationForm({ ngoId, ngoName, onSuccess }: DonationFormProps) {
         </button>
       </div>
 
-      <div className="bg-amber-50 text-amber-800 text-xs rounded-lg p-3">
-        <strong>Note:</strong> Stripe payment processing coming soon. Your donation intent is recorded.
-      </div>
-
       <Button type="submit" disabled={submitting || !amount} className="w-full">
         {submitting
-          ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Processing…</>
-          : <><Heart className="w-4 h-4 mr-2" />Donate {amount ? `₹${Number(amount).toLocaleString('en-IN')}` : ''}</>}
+          ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />{IS_PROD ? 'Opening Payment…' : 'Processing…'}</>
+          : <><Heart className="w-4 h-4 mr-2" />{IS_PROD ? 'Pay & Donate' : 'Donate'} {amount ? `₹${Number(amount).toLocaleString('en-IN')}` : ''}</>}
       </Button>
     </form>
   )

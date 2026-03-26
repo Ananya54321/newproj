@@ -10,8 +10,11 @@ import { Footer } from '@/components/boty/footer'
 import { useCart } from '@/components/boty/cart-context'
 import { useAuth } from '@/hooks/use-auth'
 import { checkout, formatPrice } from '@/lib/marketplace/service'
+import { initiateRazorpayPayment } from '@/lib/razorpay/utils'
 import type { CheckoutItem } from '@/lib/marketplace/service'
 import { toast } from 'sonner'
+
+const IS_PROD = process.env.NEXT_PUBLIC_STAGE === 'prod'
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart()
@@ -24,6 +27,29 @@ export default function CheckoutPage() {
   // Only items with a storeId can be checked out
   const checkoutItems = items.filter((i) => i.storeId) as (typeof items[0] & { storeId: string })[]
   const nonCheckoutItems = items.filter((i) => !i.storeId)
+  const totalAmount = checkoutItems.reduce((s, i) => s + i.price * i.quantity, 0)
+
+  const placeOrder = async () => {
+    const payload: CheckoutItem[] = checkoutItems.map((i) => ({
+      id: i.id,
+      name: i.name,
+      price: i.price,
+      quantity: i.quantity,
+      image: i.image,
+      storeId: i.storeId,
+    }))
+
+    const { orderIds, error } = await checkout(payload, user!.id, shippingAddress.trim())
+    if (error) {
+      toast.error(error)
+      return false
+    }
+
+    clearCart()
+    toast.success(`Order${orderIds.length > 1 ? 's' : ''} placed successfully!`)
+    router.push('/orders?success=true')
+    return true
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,26 +68,29 @@ export default function CheckoutPage() {
     }
 
     setSubmitting(true)
-    const payload: CheckoutItem[] = checkoutItems.map((i) => ({
-      id: i.id,
-      name: i.name,
-      price: i.price,
-      quantity: i.quantity,
-      image: i.image,
-      storeId: i.storeId,
-    }))
 
-    const { orderIds, error } = await checkout(payload, user.id, shippingAddress.trim())
-    setSubmitting(false)
-
-    if (error) {
-      toast.error(error)
-      return
+    if (IS_PROD) {
+      try {
+        const result = await initiateRazorpayPayment({
+          amountInRupees: totalAmount,
+          name: 'Furever',
+          description: `Order for ${checkoutItems.length} item${checkoutItems.length !== 1 ? 's' : ''}`,
+          prefill: { name: user.user_metadata?.full_name, email: user.email },
+        })
+        if (!result) {
+          // User dismissed the modal
+          setSubmitting(false)
+          return
+        }
+        await placeOrder()
+      } catch (err) {
+        toast.error((err as Error).message ?? 'Payment failed')
+      }
+    } else {
+      await placeOrder()
     }
 
-    clearCart()
-    toast.success(`Order${orderIds.length > 1 ? 's' : ''} placed successfully!`)
-    router.push('/orders?success=true')
+    setSubmitting(false)
   }
 
   if (items.length === 0) {
@@ -156,9 +185,9 @@ export default function CheckoutPage() {
                 className="w-full py-4 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed boty-transition flex items-center justify-center gap-2"
               >
                 {submitting ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Placing Order…</>
+                  <><Loader2 className="w-4 h-4 animate-spin" /> {IS_PROD ? 'Opening Payment…' : 'Placing Order…'}</>
                 ) : (
-                  `Place Order · ${formatPrice(checkoutItems.reduce((s, i) => s + i.price * i.quantity, 0))}`
+                  `${IS_PROD ? 'Pay' : 'Place Order'} · ${formatPrice(totalAmount)}`
                 )}
               </button>
             </form>

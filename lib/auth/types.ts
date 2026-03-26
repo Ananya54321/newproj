@@ -439,7 +439,7 @@ export interface VetWithProfile {
   bio: string | null
   social_links: Record<string, string> | null
   verified_at: string | null
-  /** Distance in km from user's location - populated client-side */
+  /** Distance in km from user's location — populated client-side */
   distance?: number
 }
 

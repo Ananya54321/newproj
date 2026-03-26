@@ -103,7 +103,7 @@ export default function StoreDashboardPage() {
     )
   }
 
-  // No store yet - show creation form
+  // No store yet — show creation form
   if (!store) {
     return (
       <div className="min-h-screen">

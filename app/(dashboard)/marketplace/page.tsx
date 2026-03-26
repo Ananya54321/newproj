@@ -156,7 +156,7 @@ export default function MarketplacePage() {
             <ShoppingBag className="w-10 h-10 mx-auto mb-3 text-muted-foreground/30" />
             <p className="font-semibold text-foreground">No products found</p>
             <p className="text-sm text-muted-foreground mt-1">
-              {search ? 'Try a different search term' : 'Check back soon - stores are being added'}
+              {search ? 'Try a different search term' : 'Check back soon — stores are being added'}
             </p>
           </div>
         ) : (
