@@ -112,7 +112,7 @@ export function LoginForm({ redirectTo = '/dashboard' }: LoginFormProps) {
               href="/forgot-password"
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              Forgot password?
+              Sign in with magic link
             </Link>
           </div>
           <div className="relative">

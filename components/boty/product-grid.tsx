@@ -139,7 +139,7 @@ export function ProductGrid({ products = [] }: ProductGridProps) {
             filteredProducts.map((product, index) => (
               <Link
                 key={`${selectedCategory}-${product.id}`}
-                href={`/product/${product.id}`}
+                href={`/marketplace/${product.store.slug}/${product.id}`}
                 className={`group transition-all duration-500 ease-out ${
                   isVisible && !isTransitioning ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
                 }`}
@@ -166,7 +166,10 @@ export function ProductGrid({ products = [] }: ProductGridProps) {
                           name: product.name,
                           description: product.description ?? '',
                           price: product.price,
-                          image: product.images?.[0] ?? '/placeholder.svg'
+                          image: product.images?.[0] ?? '/placeholder.svg',
+                          stock: product.stock,
+                          storeId: product.store.id,
+                          storeSlug: product.store.slug ?? undefined,
                         })
                       }}
                       aria-label="Add to cart"

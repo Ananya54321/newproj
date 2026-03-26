@@ -62,8 +62,9 @@ function ForgotPasswordContent() {
             <div className="space-y-1">
               <h1 className="font-serif text-2xl font-semibold text-foreground">Check your inbox</h1>
               <p className="text-sm text-muted-foreground">
-                We sent a password reset link to{' '}
+                We sent a magic link to{' '}
                 <span className="font-medium text-foreground">{email}</span>.
+                Click it to sign in instantly — no password needed.
               </p>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -82,9 +83,9 @@ function ForgotPasswordContent() {
           /* Form */
           <div className="space-y-6">
             <div className="space-y-1">
-              <h1 className="font-serif text-3xl font-semibold text-foreground">Forgot password?</h1>
+              <h1 className="font-serif text-3xl font-semibold text-foreground">Sign in with magic link</h1>
               <p className="text-sm text-muted-foreground">
-                Enter your email and we&apos;ll send you a reset link.
+                Enter your email and we&apos;ll send you a magic link to sign in instantly.
               </p>
             </div>
 
@@ -125,7 +126,7 @@ function ForgotPasswordContent() {
                     Sending…
                   </>
                 ) : (
-                  'Send Reset Link'
+                  'Send Magic Link'
                 )}
               </Button>
             </form>
