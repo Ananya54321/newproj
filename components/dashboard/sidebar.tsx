@@ -19,6 +19,8 @@ import {
   Store,
   Building2,
   MessageSquare,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
@@ -77,6 +79,7 @@ export function DashboardSidebar() {
   const { signOut, profile, user, loading } = useAuth()
   const { setIsOpen: openCart, itemCount } = useCart()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
 
   // Still fetching auth state — render a skeleton placeholder so layout doesn't shift
@@ -114,38 +117,79 @@ export function DashboardSidebar() {
     await signOut().catch(() => {})
   }
 
-  const sidebarContent = (
+  // ── Shared sidebar content ─────────────────────────────────────────────────
+
+  const sidebarContent = (fullWidth: boolean) => (
     <div className="flex flex-col h-full">
-      {/* Logo + actions */}
-      <div className="px-4 py-5 border-b border-border/60 flex items-center justify-between">
-        <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
-          <p className="font-serif text-lg font-semibold text-foreground tracking-wide">Furever</p>
-          {profile?.full_name && (
-            <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-36">
-              {profile.full_name}
-            </p>
-          )}
-        </Link>
-        <div className="flex items-center gap-0.5">
+
+      {/* Header */}
+      <div className={cn(
+        'border-b border-border/60 flex items-center h-[65px]',
+        fullWidth && !collapsed ? 'px-4 justify-between' : 'px-2 justify-center'
+      )}>
+        {fullWidth && !collapsed ? (
+          <>
+            <Link href="/dashboard">
+              <p className="font-serif text-lg font-semibold text-foreground tracking-wide">Furever</p>
+              {profile?.full_name && (
+                <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-36">
+                  {profile.full_name}
+                </p>
+              )}
+            </Link>
+            <div className="flex items-center gap-0.5">
+              <button
+                type="button"
+                onClick={() => openCart(true)}
+                className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted boty-transition"
+                aria-label="Cart"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                {itemCount > 0 && (
+                  <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center rounded-full">
+                    {itemCount > 9 ? '9+' : itemCount}
+                  </span>
+                )}
+              </button>
+              <NotificationBell />
+              <button
+                type="button"
+                onClick={() => setCollapsed(true)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted boty-transition"
+                aria-label="Collapse sidebar"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
+          </>
+        ) : fullWidth && collapsed ? (
+          /* Collapsed desktop header */
           <button
             type="button"
-            onClick={() => openCart(true)}
-            className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted boty-transition"
-            aria-label="Cart"
+            onClick={() => setCollapsed(false)}
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted boty-transition"
+            aria-label="Expand sidebar"
           >
-            <ShoppingBag className="w-4 h-4" />
-            {itemCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center rounded-full">
-                {itemCount > 9 ? '9+' : itemCount}
-              </span>
-            )}
+            <ChevronRight className="w-4 h-4" />
           </button>
-          <NotificationBell />
-        </div>
+        ) : (
+          /* Mobile header */
+          <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
+            <p className="font-serif text-lg font-semibold text-foreground tracking-wide">Furever</p>
+            {profile?.full_name && (
+              <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-36">
+                {profile.full_name}
+              </p>
+            )}
+          </Link>
+        )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+      <nav className={cn(
+        'flex-1 py-4 space-y-0.5 overflow-y-auto',
+        collapsed && fullWidth ? 'px-2' : 'px-3'
+      )}>
         {nav.map(({ href, label, icon: Icon, exact }) => {
           const active = exact ? pathname === href : (pathname === href || pathname.startsWith(href + '/'))
           return (
@@ -153,42 +197,57 @@ export function DashboardSidebar() {
               key={href}
               href={href}
               onClick={() => setMobileOpen(false)}
+              title={collapsed && fullWidth ? label : undefined}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                'flex items-center rounded-lg text-sm font-medium transition-colors',
+                collapsed && fullWidth
+                  ? 'justify-center p-2.5'
+                  : 'gap-3 px-3 py-2.5',
                 active
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
               <Icon className="w-4 h-4 shrink-0" />
-              {label}
+              {!(collapsed && fullWidth) && label}
             </Link>
           )
         })}
       </nav>
 
       {/* Emergency CTA */}
-      <div className="px-3 pb-3">
+      <div className={cn('pb-3', collapsed && fullWidth ? 'px-2' : 'px-3')}>
         <Link
           href="/emergency/report"
           onClick={() => setMobileOpen(false)}
-          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 transition-colors"
+          title={collapsed && fullWidth ? 'Report Emergency' : undefined}
+          className={cn(
+            'flex items-center w-full py-2.5 rounded-lg bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 transition-colors',
+            collapsed && fullWidth ? 'justify-center' : 'justify-center gap-2'
+          )}
         >
           <AlertTriangle className="w-4 h-4" />
-          Report Emergency
+          {!(collapsed && fullWidth) && 'Report Emergency'}
         </Link>
       </div>
 
       {/* Sign out */}
-      <div className="px-3 pb-5 border-t border-border/60 pt-3">
+      <div className={cn(
+        'pb-5 border-t border-border/60 pt-3',
+        collapsed && fullWidth ? 'px-2' : 'px-3'
+      )}>
         <button
           type="button"
           onClick={handleSignOut}
           disabled={signingOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-foreground/6 hover:text-foreground transition-colors w-full disabled:opacity-60 disabled:cursor-not-allowed"
+          title={collapsed && fullWidth ? 'Sign Out' : undefined}
+          className={cn(
+            'flex items-center rounded-lg text-sm font-medium text-muted-foreground hover:bg-foreground/6 hover:text-foreground transition-colors w-full disabled:opacity-60 disabled:cursor-not-allowed',
+            collapsed && fullWidth ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'
+          )}
         >
           <LogOut className="w-4 h-4 shrink-0" />
-          {signingOut ? 'Signing out…' : 'Sign Out'}
+          {!(collapsed && fullWidth) && (signingOut ? 'Signing out…' : 'Sign Out')}
         </button>
       </div>
     </div>
@@ -197,8 +256,11 @@ export function DashboardSidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-56 xl:w-60 h-screen border-r border-border/60 bg-card shrink-0">
-        {sidebarContent}
+      <aside className={cn(
+        'hidden lg:flex flex-col h-screen border-r border-border/60 bg-card shrink-0 transition-all duration-200',
+        collapsed ? 'w-16' : 'w-56 xl:w-60'
+      )}>
+        {sidebarContent(true)}
       </aside>
 
       {/* Mobile toggle */}
@@ -227,7 +289,7 @@ export function DashboardSidebar() {
             >
               <X className="w-5 h-5" />
             </button>
-            {sidebarContent}
+            {sidebarContent(false)}
           </aside>
         </>
       )}

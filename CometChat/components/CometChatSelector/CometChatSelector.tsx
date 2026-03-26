@@ -177,7 +177,6 @@ const CometChatSelector = (props: SelectorProps) => {
         <div className="cometchat-conversations-header__title">{getLocalizedString('conversation_chat_title')}</div>
         <div className="chat-menu">
           <CometChatContextMenu
-            key="delete-button"
             useParentContainer
             closeOnOutsideClick={true}
             placement={Placement.bottom}

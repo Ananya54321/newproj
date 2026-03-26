@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import type { Profile } from '@/lib/auth/types'
 
 const APP_ID = process.env.COMETCHAT_APP_ID!
 const REGION = process.env.COMETCHAT_REGION!
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
     .from('profiles')
     .select('role, full_name, email')
     .eq('id', user.id)
-    .single()
+    .single() as { data: Pick<Profile, 'role' | 'full_name' | 'email'> | null; error: unknown }
 
   if (profileError || !profile) {
     return NextResponse.json({ error: 'Profile not found' }, { status: 404 })

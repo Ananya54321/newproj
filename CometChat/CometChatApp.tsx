@@ -1,5 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 import './styles/CometChatApp.css';
+import './styles/furever-theme.css';
 import { AppContextProvider } from './context/AppContext';
 import { CometChatHome } from './components/CometChatHome/CometChatHome';
 import React, { useEffect, useState } from 'react';

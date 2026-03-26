@@ -3,11 +3,11 @@
 import dynamic from 'next/dynamic'
 import { Lock, AlertCircle, Loader2 } from 'lucide-react'
 import { useCometChat } from '@/hooks/useCometChat'
-import { CometChatProvider } from '@/cometchat/context/CometChatContext'
+import { CometChatProvider } from '@/CometChat/context/CometChatContext'
 import type { Profile } from '@/lib/auth/types'
 
 // Lazy-load the heavy CometChat UI — avoids SSR issues with browser-only APIs
-const CometChatApp = dynamic(() => import('@/cometchat/CometChatApp'), {
+const CometChatApp = dynamic(() => import('@/CometChat/CometChatApp'), {
   ssr: false,
   loading: () => <ChatSkeleton />,
 })

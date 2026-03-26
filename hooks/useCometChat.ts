@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react'
-import { initCometChat } from '@/cometchat/initCometChat'
-import { loginCometChat, logoutCometChat } from '@/lib/cometchatAuth'
+import { useCallback, useEffect, useState } from 'react'
 import type { Profile } from '@/lib/auth/types'
 
 type ChatStatus = 'idle' | 'loading' | 'ready' | 'denied' | 'error'
@@ -22,6 +20,9 @@ export function useCometChat(profile: Profile | null) {
     const connect = async () => {
       setStatus('loading')
       try {
+        // Dynamic imports keep CometChat (browser-only) out of the SSR bundle
+        const { initCometChat } = await import('@/CometChat/initCometChat')
+        const { loginCometChat } = await import('@/lib/cometchatAuth')
         await initCometChat()
         await loginCometChat()
         if (!cancelled) setStatus('ready')
@@ -39,5 +40,10 @@ export function useCometChat(profile: Profile | null) {
     }
   }, [profile?.id, profile?.role]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { status, logout: logoutCometChat }
+  const logout = useCallback(async () => {
+    const { logoutCometChat } = await import('@/lib/cometchatAuth')
+    await logoutCometChat()
+  }, [])
+
+  return { status, logout }
 }
