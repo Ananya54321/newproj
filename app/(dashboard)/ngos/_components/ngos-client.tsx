@@ -1,10 +1,17 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Search, Heart, PawPrint, MapPin, Navigation, Loader2 } from 'lucide-react'
 import { NgoCard } from '@/components/ngo/ngo-card'
 import { EventCard } from '@/components/ngo/event-card'
 import { getUserLocation, haversineDistance, formatDistance } from '@/lib/geo/utils'
+import {
+  registerForNgoEvent,
+  unregisterFromNgoEvent,
+  getUserNgoRegisteredEventIds,
+} from '@/lib/ngo/service'
+import { useAuth } from '@/hooks/use-auth'
+import { toast } from 'sonner'
 import type { Profile, NgoProfile, NgoEventWithNgo } from '@/lib/auth/types'
 import type { LatLng } from '@/lib/geo/utils'
 
@@ -17,11 +24,20 @@ interface Props {
 }
 
 export function NgosClient({ initialNgos, initialEvents }: Props) {
+  const { user } = useAuth()
   const [search, setSearch] = useState('')
   const [tab, setTab] = useState<Tab>('organizations')
   const [eventFilter, setEventFilter] = useState<EventFilter>('all')
   const [userLocation, setUserLocation] = useState<LatLng | null>(null)
   const [locating, setLocating] = useState(false)
+  const [registeredIds, setRegisteredIds] = useState<Set<string>>(new Set())
+
+  // Fetch the user's existing registrations for these events
+  useEffect(() => {
+    if (!user?.id || initialEvents.length === 0) return
+    const ids = initialEvents.map((e) => e.id)
+    getUserNgoRegisteredEventIds(user.id, ids).then(setRegisteredIds).catch(() => {})
+  }, [user?.id, initialEvents])
 
   const handleGetLocation = useCallback(async () => {
     setLocating(true)
@@ -29,6 +45,33 @@ export function NgosClient({ initialNgos, initialEvents }: Props) {
     setLocating(false)
     if (loc) setUserLocation(loc)
   }, [])
+
+  const handleRegister = useCallback(
+    async (eventId: string, shouldRegister: boolean) => {
+      if (!user?.id) {
+        toast.error('Sign in to register for events')
+        return
+      }
+      if (shouldRegister) {
+        const { error } = await registerForNgoEvent(eventId, user.id)
+        if (error) {
+          toast.error('Registration failed')
+        } else {
+          setRegisteredIds((prev) => new Set([...prev, eventId]))
+          toast.success('You are registered!')
+        }
+      } else {
+        const { error } = await unregisterFromNgoEvent(eventId, user.id)
+        if (error) {
+          toast.error('Could not cancel registration')
+        } else {
+          setRegisteredIds((prev) => { const s = new Set(prev); s.delete(eventId); return s })
+          toast.success('Registration cancelled')
+        }
+      }
+    },
+    [user?.id]
+  )
 
   const getNgoDistance = (n: Profile & { ngo_profile: NgoProfile }): number | null => {
     if (!userLocation || n.latitude == null || n.longitude == null) return null
@@ -111,7 +154,7 @@ export function NgosClient({ initialNgos, initialEvents }: Props) {
                 className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-border/60 bg-card hover:border-primary/50 transition-colors text-muted-foreground hover:text-foreground"
               >
                 {locating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Navigation className="w-3 h-3" />}
-                {userLocation ? 'Location on - sorted by distance' : 'Sort by distance'}
+                {userLocation ? 'Location on — sorted by distance' : 'Sort by distance'}
               </button>
               {userLocation && (
                 <button
@@ -174,7 +217,13 @@ export function NgosClient({ initialNgos, initialEvents }: Props) {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
                 {filteredEvents.map((e) => (
-                  <EventCard key={e.id} event={e} showNgo />
+                  <EventCard
+                    key={e.id}
+                    event={e}
+                    showNgo
+                    isRegistered={registeredIds.has(e.id)}
+                    onRegister={(shouldRegister) => handleRegister(e.id, shouldRegister)}
+                  />
                 ))}
               </div>
             )}

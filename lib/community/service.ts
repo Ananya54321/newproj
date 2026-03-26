@@ -12,6 +12,7 @@ import type {
   CommunityEvent,
   CommunityEventWithCreator,
   CommunityEventType,
+  CommunityEventRegistrationWithUser,
 } from '@/lib/auth/types'
 
 // ─── Form data ────────────────────────────────────────────────────────────────
@@ -172,7 +173,7 @@ export async function getPosts(
   if (sort === 'new') query = query.order('created_at', { ascending: false })
   else if (sort === 'top') query = query.order('vote_score', { ascending: false })
   else {
-    // hot: recent posts weighted by votes - order by created_at desc as approximation
+    // hot: recent posts weighted by votes — order by created_at desc as approximation
     query = query.order('created_at', { ascending: false })
   }
 
@@ -277,7 +278,7 @@ export async function votePost(
     .maybeSingle()
 
   if (existing?.vote === vote) {
-    // Same vote - remove it
+    // Same vote — remove it
     const { error } = await supabaseClient
       .from('post_votes')
       .delete()
@@ -490,7 +491,6 @@ export interface CommunityEventFormData {
   location?: string | null
   event_date: string
   image_url?: string | null
-  registration_url?: string | null
 }
 
 export async function getCommunityEvents(
@@ -531,6 +531,63 @@ export async function deleteCommunityEvent(eventId: string): Promise<{ error: st
     .update({ is_active: false })
     .eq('id', eventId)
   return { error: error?.message ?? null }
+}
+
+// ─── Community Event Registrations ────────────────────────────────────────────
+
+export async function registerForCommunityEvent(
+  eventId: string,
+  userId: string
+): Promise<{ error: string | null }> {
+  const { error } = await supabaseClient
+    .from('community_event_registrations')
+    .insert({ event_id: eventId, user_id: userId })
+  return { error: error?.message ?? null }
+}
+
+export async function unregisterFromCommunityEvent(
+  eventId: string,
+  userId: string
+): Promise<{ error: string | null }> {
+  const { error } = await supabaseClient
+    .from('community_event_registrations')
+    .delete()
+    .eq('event_id', eventId)
+    .eq('user_id', userId)
+  return { error: error?.message ?? null }
+}
+
+/** Fetch all registered users for a specific community event (for event creator). */
+export async function getCommunityEventRegistrations(
+  eventId: string,
+  client: SupabaseClient = supabaseClient
+): Promise<CommunityEventRegistrationWithUser[]> {
+  const { data, error } = await client
+    .from('community_event_registrations')
+    .select(`*, user:profiles!community_event_registrations_user_id_fkey(id, full_name, avatar_url, email)`)
+    .eq('event_id', eventId)
+    .order('created_at', { ascending: true })
+  if (error) throw error
+  return ((data ?? []) as unknown[]).map((raw) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const r = raw as any
+    return { ...r, user: Array.isArray(r.user) ? r.user[0] : r.user }
+  }) as CommunityEventRegistrationWithUser[]
+}
+
+/** Fetch the set of community event IDs the user is registered for, from a given list. */
+export async function getUserCommunityRegisteredEventIds(
+  userId: string,
+  eventIds: string[],
+  client: SupabaseClient = supabaseClient
+): Promise<Set<string>> {
+  if (eventIds.length === 0) return new Set()
+  const { data } = await client
+    .from('community_event_registrations')
+    .select('event_id')
+    .eq('user_id', userId)
+    .in('event_id', eventIds)
+  return new Set((data ?? []).map((r) => r.event_id))
 }
 
 // ─── Utilities ────────────────────────────────────────────────────────────────

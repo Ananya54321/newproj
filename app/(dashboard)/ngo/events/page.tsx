@@ -3,16 +3,17 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
-import { getNGOEvents, deleteNGOEvent } from '@/lib/ngo/service'
+import { getNGOEvents, deleteNGOEvent, getNgoEventRegistrationCounts } from '@/lib/ngo/service'
 import { EventCard } from '@/components/ngo/event-card'
 import type { NgoEvent } from '@/lib/auth/types'
 import { toast } from 'sonner'
-import { Calendar, Plus, Loader2, Pencil, Trash2 } from 'lucide-react'
+import { Calendar, Plus, Loader2, Pencil, Trash2, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default function NgoEventsPage() {
   const { user } = useAuth()
   const [events, setEvents] = useState<NgoEvent[]>([])
+  const [registrationCounts, setRegistrationCounts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -20,8 +21,12 @@ export default function NgoEventsPage() {
     if (!user?.id) return
     setLoading(true)
     try {
-      const data = await getNGOEvents(user.id)
+      const [data, counts] = await Promise.all([
+        getNGOEvents(user.id),
+        getNgoEventRegistrationCounts(user.id),
+      ])
       setEvents(data)
+      setRegistrationCounts(counts)
     } catch {
       toast.error('Failed to load events')
     } finally {
@@ -93,13 +98,28 @@ export default function NgoEventsPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             {events.map((event) => (
               <div key={event.id} className="relative">
-                <EventCard event={event} />
+                <EventCard
+                  event={event}
+                  registrationCount={registrationCounts[event.id] ?? 0}
+                />
                 <div className="absolute top-3 right-3 flex gap-1.5">
+                  {/* View registrations */}
+                  <Link href={`/ngo/events/${event.id}/registrations`}>
+                    <button
+                      className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-card/90 hover:bg-card border border-border/40 backdrop-blur-sm transition-colors text-xs text-muted-foreground hover:text-foreground"
+                      title="View registrations"
+                    >
+                      <Users className="w-3.5 h-3.5" />
+                      {registrationCounts[event.id] ?? 0}
+                    </button>
+                  </Link>
+                  {/* Edit */}
                   <Link href={`/ngo/events/${event.id}/edit`}>
                     <button className="p-1.5 rounded-lg bg-card/90 hover:bg-card border border-border/40 backdrop-blur-sm transition-colors">
                       <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
                     </button>
                   </Link>
+                  {/* Delete */}
                   <button
                     onClick={() => handleDelete(event.id)}
                     disabled={deletingId === event.id}

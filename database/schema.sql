@@ -1,5 +1,5 @@
 -- ============================================================
--- FUREVER - Supabase Database Schema
+-- FUREVER — Supabase Database Schema
 -- Run this in the Supabase SQL Editor (Dashboard > SQL Editor)
 -- ============================================================
 
@@ -564,7 +564,7 @@ create policy "donations: admin all"
 -- Create these in the Supabase Dashboard → Storage
 -- ============================================================
 -- bucket: avatars        (public)
--- bucket: vet-documents  (private) - license, resume uploads
+-- bucket: vet-documents  (private) — license, resume uploads
 -- bucket: ngo-documents  (private)
 -- bucket: product-images (public)
 -- bucket: emergency-media (public)

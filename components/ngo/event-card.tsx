@@ -1,6 +1,8 @@
+'use client'
+
+import { useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
-import { Calendar, MapPin, Heart, Users, ExternalLink, Target } from 'lucide-react'
+import { Calendar, MapPin, Heart, Users, Target, CheckCircle2, Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
 import type { NgoEvent, NgoEventWithNgo } from '@/lib/auth/types'
 import { formatDonationAmount } from '@/lib/ngo/service'
@@ -9,13 +11,27 @@ import { cn } from '@/lib/utils'
 interface EventCardProps {
   event: NgoEvent | NgoEventWithNgo
   showNgo?: boolean
+  /** Registration count shown in NGO management view */
+  registrationCount?: number
+  /** Whether the current user is registered (public view) */
+  isRegistered?: boolean
+  /** Called when user clicks Register / Unregister */
+  onRegister?: (registered: boolean) => Promise<void>
 }
 
 function hasNgo(e: NgoEvent | NgoEventWithNgo): e is NgoEventWithNgo {
   return 'ngo' in e && !!e.ngo
 }
 
-export function EventCard({ event, showNgo = false }: EventCardProps) {
+export function EventCard({
+  event,
+  showNgo = false,
+  registrationCount,
+  isRegistered,
+  onRegister,
+}: EventCardProps) {
+  const [registering, setRegistering] = useState(false)
+
   const isFundraiser = event.type === 'fundraiser'
   const eventDate = new Date(event.event_date)
   const ngo = showNgo && hasNgo(event) ? event.ngo : null
@@ -25,6 +41,13 @@ export function EventCard({ event, showNgo = false }: EventCardProps) {
     isFundraiser && event.goal_amount && event.raised_amount
       ? Math.min(100, Math.round((event.raised_amount / event.goal_amount) * 100))
       : 0
+
+  const handleRegistrationClick = async () => {
+    if (!onRegister) return
+    setRegistering(true)
+    await onRegister(!isRegistered)
+    setRegistering(false)
+  }
 
   return (
     <div className="bg-card rounded-2xl overflow-hidden boty-shadow boty-transition hover:shadow-md group">
@@ -121,17 +144,38 @@ export function EventCard({ event, showNgo = false }: EventCardProps) {
         )}
 
         {/* CTA */}
-        {event.registration_url ? (
-          <Link
-            href={event.registration_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 boty-transition"
+        {onRegister ? (
+          /* Public view — in-app registration */
+          <button
+            type="button"
+            onClick={handleRegistrationClick}
+            disabled={registering}
+            className={cn(
+              'inline-flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl text-sm font-medium boty-transition',
+              isRegistered
+                ? 'bg-emerald-100 text-emerald-700 hover:bg-rose-100 hover:text-rose-700'
+                : 'bg-primary text-primary-foreground hover:bg-primary/90'
+            )}
           >
-            Register
-            <ExternalLink className="w-3.5 h-3.5" />
-          </Link>
+            {registering ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : isRegistered ? (
+              <>
+                <CheckCircle2 className="w-4 h-4" />
+                Registered — click to cancel
+              </>
+            ) : (
+              'Register'
+            )}
+          </button>
+        ) : registrationCount !== undefined ? (
+          /* NGO management view — show count */
+          <div className="inline-flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl bg-muted/50 text-muted-foreground text-sm">
+            <Users className="w-3.5 h-3.5" />
+            {registrationCount} {registrationCount === 1 ? 'registration' : 'registrations'}
+          </div>
         ) : (
+          /* Fallback */
           <div className="inline-flex items-center justify-center w-full py-2.5 rounded-xl bg-muted/50 text-muted-foreground text-sm">
             No registration required
           </div>

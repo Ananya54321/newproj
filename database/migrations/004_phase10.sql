@@ -112,7 +112,7 @@ CREATE POLICY "Users can delete own reviews"
   ON product_reviews FOR DELETE USING (auth.uid() = user_id);
 
 -- ── RLS for profiles slug (allow public SELECT on slug) ───────────────────────
--- profiles already has SELECT policy - slug column is automatically included.
+-- profiles already has SELECT policy — slug column is automatically included.
 
 -- ── updated_at trigger for ngo_events ─────────────────────────────────────────
 CREATE OR REPLACE FUNCTION update_ngo_events_updated_at()
