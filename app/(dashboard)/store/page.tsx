@@ -3,11 +3,12 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, Package, Pencil, Trash2, Store as StoreIcon, ExternalLink, Loader2, AlertTriangle } from 'lucide-react'
+import { Plus, Package, Pencil, Trash2, Store as StoreIcon, ExternalLink, Loader2, AlertTriangle, RotateCcw } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import {
   getOwnerStoreWithProducts,
-  deleteProduct,
+  archiveProduct,
+  restoreProduct,
   createStore,
   type StoreFormData,
 } from '@/lib/marketplace/service'
@@ -35,6 +36,7 @@ export default function StoreDashboardPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [creatingStore, setCreatingStore] = useState(false)
+  const [activeTab, setActiveTab] = useState<'products' | 'archived'>('products')
 
   // Create store form state
   const [newStoreName, setNewStoreName] = useState('')
@@ -85,13 +87,23 @@ export default function StoreDashboardPage() {
     }
   }
 
-  const handleDeleteProduct = async (productId: string) => {
-    const { error } = await deleteProduct(productId)
+  const handleArchiveProduct = async (productId: string) => {
+    const { error } = await archiveProduct(productId)
     if (error) {
       toast.error(error)
     } else {
-      toast.success('Product deleted')
-      setProducts((prev) => prev.filter((p) => p.id !== productId))
+      toast.success('Product archived')
+      setProducts((prev) => prev.map((p) => p.id === productId ? { ...p, is_archived: true } : p))
+    }
+  }
+
+  const handleRestoreProduct = async (productId: string) => {
+    const { error } = await restoreProduct(productId)
+    if (error) {
+      toast.error(error)
+    } else {
+      toast.success('Product restored')
+      setProducts((prev) => prev.map((p) => p.id === productId ? { ...p, is_archived: false } : p))
     }
   }
 
@@ -177,8 +189,12 @@ export default function StoreDashboardPage() {
     )
   }
 
-  const activeProducts = products.filter((p) => p.is_active)
-  const inactiveProducts = products.filter((p) => !p.is_active)
+  const visibleProducts = products.filter((p) => !p.is_archived)
+  const archivedProducts = products.filter((p) => p.is_archived)
+  const activeProducts = visibleProducts.filter((p) => p.is_active)
+  const draftProducts = visibleProducts.filter((p) => !p.is_active)
+
+  const tabProducts = activeTab === 'products' ? visibleProducts : archivedProducts
 
   return (
     <div className="min-h-screen">
@@ -227,13 +243,13 @@ export default function StoreDashboardPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
       {/* Out-of-stock alert */}
-      {products.some((p) => p.stock === 0) && (
+      {visibleProducts.some((p) => p.stock === 0) && (
         <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 text-sm">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>
-            {products.filter((p) => p.stock === 0).length === 1
+            {visibleProducts.filter((p) => p.stock === 0).length === 1
               ? '1 product is out of stock.'
-              : `${products.filter((p) => p.stock === 0).length} products are out of stock.`}{' '}
+              : `${visibleProducts.filter((p) => p.stock === 0).length} products are out of stock.`}{' '}
             Update their stock to keep selling.
           </span>
         </div>
@@ -242,9 +258,9 @@ export default function StoreDashboardPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Total Products', value: products.length },
           { label: 'Active', value: activeProducts.length },
-          { label: 'Inactive', value: inactiveProducts.length },
+          { label: 'Drafts', value: draftProducts.length },
+          { label: 'Archived', value: archivedProducts.length },
         ].map((stat) => (
           <div key={stat.label} className="bg-card rounded-2xl p-4 boty-shadow text-center">
             <p className="text-2xl font-semibold text-foreground">{stat.value}</p>
@@ -253,24 +269,49 @@ export default function StoreDashboardPage() {
         ))}
       </div>
 
-      {/* Products list */}
+      {/* Tabs */}
       <div>
-        <h2 className="font-semibold text-foreground mb-3">Products</h2>
-        {products.length === 0 ? (
+        <div className="flex items-center gap-1 border-b border-border/50 mb-4">
+          {(['products', 'archived'] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 text-sm font-medium boty-transition border-b-2 -mb-px ${
+                activeTab === tab
+                  ? 'border-primary text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {tab === 'products' ? `Products (${visibleProducts.length})` : `Archived (${archivedProducts.length})`}
+            </button>
+          ))}
+        </div>
+
+        {tabProducts.length === 0 ? (
           <div className="py-12 text-center bg-card rounded-2xl boty-shadow">
             <Package className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="font-semibold text-foreground">No products yet</p>
-            <p className="text-sm text-muted-foreground mt-1 mb-4">Add your first product to start selling.</p>
-            <Button asChild size="sm">
-              <Link href="/store/products/new">Add Product</Link>
-            </Button>
+            {activeTab === 'products' ? (
+              <>
+                <p className="font-semibold text-foreground">No products yet</p>
+                <p className="text-sm text-muted-foreground mt-1 mb-4">Add your first product to start selling.</p>
+                <Button asChild size="sm">
+                  <Link href="/store/products/new">Add Product</Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="font-semibold text-foreground">No archived products</p>
+                <p className="text-sm text-muted-foreground mt-1">Products you remove from the marketplace will appear here.</p>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-2">
-            {products.map((product) => (
+            {tabProducts.map((product) => (
               <div
                 key={product.id}
-                className="flex items-center gap-4 bg-card rounded-xl p-4 boty-shadow"
+                className={`flex items-center gap-4 bg-card rounded-xl p-4 boty-shadow ${product.is_archived ? 'opacity-60' : ''}`}
               >
                 <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
                   {product.images?.[0] ? (
@@ -284,10 +325,13 @@ export default function StoreDashboardPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-foreground truncate">{product.name}</p>
-                    {!product.is_active && (
+                    {!product.is_active && !product.is_archived && (
                       <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Draft</span>
                     )}
-                    {product.stock === 0 && (
+                    {product.is_archived && (
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Archived</span>
+                    )}
+                    {product.stock === 0 && !product.is_archived && (
                       <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">Out of stock</span>
                     )}
                   </div>
@@ -297,36 +341,49 @@ export default function StoreDashboardPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Link
-                    href={`/store/products/${product.id}/edit`}
-                    className="p-2 text-muted-foreground hover:text-foreground boty-transition"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Link>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button type="button" className="p-2 text-muted-foreground hover:text-destructive boty-transition">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete product?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will permanently delete &quot;{product.name}&quot;. This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDeleteProduct(product.id)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  {product.is_archived ? (
+                    <button
+                      type="button"
+                      onClick={() => handleRestoreProduct(product.id)}
+                      className="p-2 text-muted-foreground hover:text-foreground boty-transition"
+                      title="Restore product"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <>
+                      <Link
+                        href={`/store/products/${product.id}/edit`}
+                        className="p-2 text-muted-foreground hover:text-foreground boty-transition"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Link>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <button type="button" className="p-2 text-muted-foreground hover:text-destructive boty-transition">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Archive product?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              &quot;{product.name}&quot; will be hidden from the marketplace. You can restore it later from the Archived tab.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleArchiveProduct(product.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Archive
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </>
+                  )}
                 </div>
               </div>
             ))}

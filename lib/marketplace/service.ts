@@ -95,6 +95,7 @@ export async function getProducts(
     .from('products')
     .select(PRODUCT_SELECT)
     .eq('is_active', true)
+    .eq('is_archived', false)
     .order('created_at', { ascending: false })
 
   if (filters.storeId) query = query.eq('store_id', filters.storeId)
@@ -197,10 +198,18 @@ export async function updateProduct(
   return { error: error?.message ?? null }
 }
 
-export async function deleteProduct(productId: string): Promise<{ error: string | null }> {
+export async function archiveProduct(productId: string): Promise<{ error: string | null }> {
   const { error } = await supabaseClient
     .from('products')
-    .delete()
+    .update({ is_archived: true })
+    .eq('id', productId)
+  return { error: error?.message ?? null }
+}
+
+export async function restoreProduct(productId: string): Promise<{ error: string | null }> {
+  const { error } = await supabaseClient
+    .from('products')
+    .update({ is_archived: false })
     .eq('id', productId)
   return { error: error?.message ?? null }
 }

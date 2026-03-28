@@ -184,6 +184,7 @@ export interface Product {
   images: string[] | null
   category: ProductCategory | null
   is_active: boolean
+  is_archived: boolean
   created_at: string
   updated_at: string
 }
