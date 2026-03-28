@@ -181,7 +181,7 @@ export function ProductGrid({ products = [] }: ProductGridProps) {
                   {/* Info */}
                   <div className="p-5">
                     <h3 className="font-serif text-lg text-foreground mb-1">{product.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{product.description}</p>
+                    <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{product.description}</p>
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-foreground">{formatPrice(product.price)}</span>
                     </div>
