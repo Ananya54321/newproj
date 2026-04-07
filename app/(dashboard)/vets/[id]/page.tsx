@@ -33,7 +33,7 @@ export default async function VetProfilePage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-3xl mx-auto py-8 px-4 sm:px-6 space-y-8">
+      <div className="max-w-3xl mx-auto pt-16 pb-8 sm:py-8 px-4 sm:px-6 space-y-8">
         <Button asChild variant="ghost" size="sm" className="-ml-2">
           <Link href="/vets" className="gap-2">
             <ArrowLeft className="w-4 h-4" />

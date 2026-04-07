@@ -57,7 +57,7 @@ export default function EditNgoEventPage() {
   return (
     <div className="min-h-screen">
       <div className="bg-card border-b border-border/50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-8 sm:py-8">
           <div className="flex items-center gap-3">
             <Link href="/ngo/events" className="text-muted-foreground hover:text-foreground transition-colors">
               <ArrowLeft className="w-4 h-4" />
@@ -73,7 +73,7 @@ export default function EditNgoEventPage() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-16 pb-8 sm:py-8">
         <div className="bg-card rounded-2xl p-6 boty-shadow">
           <EventForm
             initial={{

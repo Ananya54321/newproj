@@ -45,8 +45,8 @@ export default function MarketplacePage() {
     <div className="min-h-screen">
       {/* Hero */}
       <div className="bg-card border-b border-border/50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-8 sm:pt-8">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                 <ShoppingBag className="w-5 h-5 text-primary" />
@@ -60,14 +60,14 @@ export default function MarketplacePage() {
             </div>
 
             {/* Search */}
-            <div className="relative shrink-0">
+            <div className="relative w-full sm:w-64 shrink-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search products…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 pr-4 py-2.5 rounded-xl bg-background border border-border/60 text-sm outline-none focus:ring-2 focus:ring-primary/30 w-64"
+                className="pl-9 pr-4 py-2.5 rounded-xl bg-background border border-border/60 text-sm outline-none focus:ring-2 focus:ring-primary/30 w-full"
               />
             </div>
           </div>
@@ -139,7 +139,7 @@ export default function MarketplacePage() {
       {/* Content */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
         {loading ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="bg-card rounded-3xl overflow-hidden boty-shadow animate-pulse">
                 <div className="aspect-square bg-muted" />
@@ -160,7 +160,7 @@ export default function MarketplacePage() {
             </p>
           </div>
         ) : (
-          <div ref={gridRef} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div ref={gridRef} className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
             {products.map((product, i) => (
               <ProductCard key={product.id} product={product} index={i} isVisible={isVisible} />
             ))}

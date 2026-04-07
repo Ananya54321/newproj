@@ -61,7 +61,7 @@ export default function ProductDetailPage() {
   }
 
   return (
-    <div className="py-8">
+    <div className="pt-16 pb-8 sm:py-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         {/* Back link */}
         <Link
@@ -72,7 +72,7 @@ export default function ProductDetailPage() {
           Back to {product.store?.name ?? 'Store'}
         </Link>
 
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-20">
           {/* Images */}
           <div className="space-y-4">
             <div className="relative aspect-square rounded-3xl overflow-hidden bg-card boty-shadow">
@@ -91,7 +91,7 @@ export default function ProductDetailPage() {
               )}
             </div>
             {images.length > 1 && (
-              <div className="flex gap-3">
+              <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none]">
                 {images.map((img, i) => (
                   <button
                     key={i}

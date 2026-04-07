@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default function MarketplaceLoading() {
   return (
-    <div className="min-h-screen py-8">
+    <div className="min-h-screen pt-16 pb-8 sm:py-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         {/* Page header */}
         <div className="text-center mb-12 space-y-3">

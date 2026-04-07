@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default function VetsLoading() {
   return (
-    <div className="min-h-screen py-8">
+    <div className="min-h-screen pt-16 pb-8 sm:py-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-8">
         {/* Header */}
         <div className="space-y-2">

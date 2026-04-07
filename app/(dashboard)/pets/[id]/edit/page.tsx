@@ -39,7 +39,7 @@ export default function EditPetPage() {
   const handleSubmit = async (data: PetFormData) => updatePet(id, data)
 
   return (
-    <div className="max-w-xl mx-auto py-8 px-4 sm:px-6">
+    <div className="max-w-xl mx-auto pt-16 pb-8 sm:py-8 px-4 sm:px-6">
       <h1 className="font-serif text-2xl font-semibold text-foreground mb-6">
         Edit {pet.name}
       </h1>
