@@ -141,6 +141,7 @@ export async function getStoreProducts(storeId: string, client: SupabaseClient =
     .from('products')
     .select('*')
     .eq('store_id', storeId)
+    .eq('is_archived', false)
     .order('created_at', { ascending: false })
   if (error) throw error
   return data ?? []

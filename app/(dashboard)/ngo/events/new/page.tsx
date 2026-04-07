@@ -43,7 +43,7 @@ export default function NewNgoEventPage() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-16 pb-8 sm:py-8">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
         <div className="bg-card rounded-2xl p-6 boty-shadow">
           <EventForm onSubmit={handleSubmit} submitLabel="Create Event" />
         </div>
