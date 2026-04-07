@@ -37,6 +37,7 @@ export const metadata: Metadata = {
     description: 'Connect with vets, pet owners, NGOs, and shops on Furever - the all-in-one pet care platform.',
   },
   robots: { index: true, follow: true },
+  manifest: '/manifest.json',
   icons: {
     icon: [
       {

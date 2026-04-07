@@ -2,7 +2,7 @@ export default function CommunityLoading() {
   return (
     <div className="min-h-screen animate-pulse">
       <div className="bg-card border-b border-border/50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-8 sm:py-8">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
               <div className="h-9 w-48 bg-muted rounded-lg" />

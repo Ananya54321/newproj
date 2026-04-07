@@ -23,7 +23,7 @@ export default async function StorePage({ params }: { params: Promise<{ storeSlu
 
   return (
     <div className="min-h-screen">
-      <div className="py-8">
+      <div className="pt-16 pb-8 sm:py-8">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           {/* Back link */}
           <Link
@@ -35,8 +35,8 @@ export default async function StorePage({ params }: { params: Promise<{ storeSlu
           </Link>
 
           {/* Store header */}
-          <div className="bg-card rounded-3xl p-8 boty-shadow mb-10">
-            <div className="flex items-start gap-6">
+          <div className="bg-card rounded-3xl p-5 sm:p-8 boty-shadow mb-10">
+            <div className="flex items-start gap-4 sm:gap-6">
               <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center overflow-hidden shrink-0">
                 {store.logo_url ? (
                   <Image src={store.logo_url} alt={store.name} width={80} height={80} className="object-cover w-full h-full" />
@@ -70,7 +70,7 @@ export default async function StorePage({ params }: { params: Promise<{ storeSlu
               <p className="text-sm text-muted-foreground mt-1">This store hasn't listed any products yet.</p>
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
               {productsWithStore.map((product, i) => (
                 <ProductCard key={product.id} product={product} index={i} isVisible />
               ))}

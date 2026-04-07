@@ -67,7 +67,7 @@ export default function NewCommunityPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto py-8 px-4 sm:px-6 space-y-6">
+    <div className="max-w-xl mx-auto pt-16 pb-8 sm:py-8 px-4 sm:px-6 space-y-6">
       <div className="flex items-center gap-3">
         <Link href="/community" className="p-1.5 text-muted-foreground hover:text-foreground boty-transition">
           <ArrowLeft className="w-5 h-5" />

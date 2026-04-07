@@ -62,7 +62,7 @@ export function ProfileClient({ profile: initialProfile }: Props) {
     <div className="min-h-screen">
       {/* Hero */}
       <div className="bg-card border-b border-border/50">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-16 pb-8 sm:py-8">
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               {profile.avatar_url ? (

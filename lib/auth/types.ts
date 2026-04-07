@@ -7,7 +7,7 @@ export type UserRole = 'user' | 'veterinarian' | 'ngo' | 'store_owner' | 'admin'
 export type VerificationStatus = 'pending' | 'approved' | 'rejected'
 
 // Phase 2–4 types
-export type PetSpecies = 'dog' | 'cat' | 'bird' | 'rabbit' | 'fish' | 'reptile' | 'other'
+export type PetSpecies = 'dog' | 'cat' | 'bird' | 'rabbit' | 'hamster' | 'fish' | 'reptile' | 'cow' | 'goat' | 'sheep' | 'pig' | 'other'
 
 // Phase 5 types
 export type ProductCategory = 'food' | 'treats' | 'toys' | 'accessories' | 'grooming' | 'health' | 'bedding' | 'other'
@@ -184,6 +184,7 @@ export interface Product {
   images: string[] | null
   category: ProductCategory | null
   is_active: boolean
+  is_archived: boolean
   created_at: string
   updated_at: string
 }
@@ -472,7 +473,12 @@ export const SPECIES_OPTIONS: { value: PetSpecies; label: string; emoji: string 
   { value: 'rabbit', label: 'Rabbit', emoji: '🐰' },
   { value: 'fish', label: 'Fish', emoji: '🐠' },
   { value: 'reptile', label: 'Reptile', emoji: '🦎' },
-  { value: 'other', label: 'Other', emoji: '🐾' },
+  { value: 'hamster', label: 'Hamster', emoji: '🐹' },
+  {value: 'cow', label: 'Cow', emoji: '🐄'},
+  {value: 'goat', label: 'Goat', emoji: '🐐'},
+  {value: 'sheep', label: 'Sheep', emoji: '🐑'},
+  {value: 'pig', label: 'Pig', emoji: '🐖'},
+  {value: 'other', label: 'Other', emoji: '🐾' },
 ]
 
 export const APPOINTMENT_STATUS_CONFIG: Record<

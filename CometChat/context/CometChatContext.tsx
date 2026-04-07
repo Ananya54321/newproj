@@ -210,7 +210,7 @@ let chatBuilderVersion = '1.0.24';
 
 (async () => {
   try {
-    const pkg = await import('../../../package.json');
+    const pkg = await import('../../package.json');
     chatBuilderName = pkg?.default?.cometChatCustomConfig.name ?? chatBuilderName;
     chatBuilderVersion = pkg?.default?.cometChatCustomConfig.version ?? chatBuilderVersion;
   } catch (e) {

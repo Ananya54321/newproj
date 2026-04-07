@@ -86,25 +86,25 @@ export function ProductCard({ product, index = 0, isVisible = true }: ProductCar
             <button
               type="button"
               onClick={handleAddToCart}
-              className="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 boty-transition boty-shadow"
+              className="absolute bottom-3 right-3 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center sm:opacity-0 sm:translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 boty-transition boty-shadow"
               aria-label="Add to cart"
             >
-              <ShoppingBag className="w-5 h-5 text-foreground" />
+              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-foreground" />
             </button>
           )}
         </div>
 
         {/* Info */}
-        <div className="p-5">
+        <div className="p-3 sm:p-5">
           <p className="text-xs text-muted-foreground mb-1 truncate">{product.store?.name}</p>
-          <h3 className="font-serif text-lg text-foreground mb-1 truncate">{product.name}</h3>
+          <h3 className="font-serif text-sm sm:text-lg text-foreground mb-1 truncate">{product.name}</h3>
           {product.description && (
-            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{product.description}</p>
+            <p className="hidden sm:block text-sm text-muted-foreground mb-3 line-clamp-2">{product.description}</p>
           )}
-          <div className="flex items-center justify-between">
-            <span className="text-lg font-medium text-foreground">{formatPrice(product.price)}</span>
+          <div className="flex items-center justify-between mt-1 sm:mt-0">
+            <span className="text-sm sm:text-lg font-medium text-foreground">{formatPrice(product.price)}</span>
             {product.stock > 0 && product.stock <= 5 && (
-              <span className="text-xs text-amber-600">Only {product.stock} left</span>
+              <span className="text-xs text-amber-600 hidden sm:inline">Only {product.stock} left</span>
             )}
           </div>
         </div>

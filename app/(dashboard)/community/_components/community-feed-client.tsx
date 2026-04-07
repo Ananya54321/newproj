@@ -54,8 +54,8 @@ export function CommunityFeedClient({ userId, initialPosts, communities, userCom
     <div className="min-h-screen">
       {/* Hero Section */}
       <div className="bg-card border-b border-border/50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-          <div className="flex items-start justify-between gap-4">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-8 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
               <h1 className="font-serif text-3xl font-bold text-foreground mb-1.5">Community</h1>
               <p className="text-muted-foreground text-sm max-w-lg">

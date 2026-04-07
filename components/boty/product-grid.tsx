@@ -90,7 +90,7 @@ export function ProductGrid({ products = [] }: ProductGridProps) {
           <span className={`text-sm tracking-[0.3em] uppercase text-primary mb-4 block ${headerVisible ? 'animate-blur-in opacity-0' : 'opacity-0'}`} style={headerVisible ? { animationDelay: '0.2s', animationFillMode: 'forwards' } : {}}>
             Marketplace
           </span>
-          <h2 className={`font-serif leading-tight text-foreground mb-4 text-balance text-7xl ${headerVisible ? 'animate-blur-in opacity-0' : 'opacity-0'}`} style={headerVisible ? { animationDelay: '0.4s', animationFillMode: 'forwards' } : {}}>
+          <h2 className={`font-serif leading-tight text-foreground mb-4 text-balance text-4xl md:text-7xl ${headerVisible ? 'animate-blur-in opacity-0' : 'opacity-0'}`} style={headerVisible ? { animationDelay: '0.4s', animationFillMode: 'forwards' } : {}}>
             Pet Essentials
           </h2>
           <p className={`text-lg text-muted-foreground max-w-md mx-auto ${headerVisible ? 'animate-blur-in opacity-0' : 'opacity-0'}`} style={headerVisible ? { animationDelay: '0.6s', animationFillMode: 'forwards' } : {}}>
@@ -129,7 +129,7 @@ export function ProductGrid({ products = [] }: ProductGridProps) {
         {/* Product Grid */}
         <div
           ref={gridRef}
-          className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"
+          className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6"
         >
           {filteredProducts.length === 0 ? (
             <div className="col-span-full text-center py-16 text-muted-foreground text-sm">
@@ -157,7 +157,7 @@ export function ProductGrid({ products = [] }: ProductGridProps) {
                     {/* Quick add button */}
                     <button
                       type="button"
-                      className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 boty-transition boty-shadow"
+                      className="absolute bottom-3 right-3 w-9 h-9 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center sm:opacity-0 sm:translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 boty-transition boty-shadow"
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
@@ -179,11 +179,11 @@ export function ProductGrid({ products = [] }: ProductGridProps) {
                   </div>
 
                   {/* Info */}
-                  <div className="p-5">
-                    <h3 className="font-serif text-lg text-foreground mb-1">{product.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{product.description}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-foreground">{formatPrice(product.price)}</span>
+                  <div className="p-3 sm:p-5">
+                    <h3 className="font-serif text-sm sm:text-lg text-foreground mb-1 truncate">{product.name}</h3>
+                    <p className="hidden sm:block text-sm text-muted-foreground mb-3 line-clamp-2">{product.description}</p>
+                    <div className="flex items-center gap-2 mt-1 sm:mt-0">
+                      <span className="text-sm sm:text-base font-medium text-foreground">{formatPrice(product.price)}</span>
                     </div>
                   </div>
                 </div>

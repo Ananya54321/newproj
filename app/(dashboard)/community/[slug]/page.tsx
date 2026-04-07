@@ -149,7 +149,7 @@ export default function CommunityPage() {
   return (
     <div className="min-h-screen">
       {/* Back link */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 sm:pt-4">
         <Link
           href="/community"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -183,47 +183,48 @@ export default function CommunityPage() {
               )}
             </div>
 
-            {/* Name + inline stats */}
+            {/* Name + stats + buttons */}
             <div className="flex-1 min-w-0 pt-10">
-              <h1 className="font-serif text-2xl font-bold text-foreground leading-tight">{community?.name}</h1>
-              <div className="flex items-center gap-5 mt-1">
-                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Users className="w-3.5 h-3.5" />
+              <div className="flex items-start justify-between gap-2">
+                <h1 className="font-serif text-xl sm:text-2xl font-bold text-foreground leading-tight">{community?.name}</h1>
+                {/* Action buttons inline with name on all screen sizes */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {user && community && (
+                    <CreatePostDialog communityId={community.id} communitySlug={slug} onCreated={load}>
+                      <Button size="sm" variant="outline" className="gap-1.5">
+                        <Plus className="w-4 h-4" /> Post
+                      </Button>
+                    </CreatePostDialog>
+                  )}
+                  {user && (
+                    <Button
+                      size="sm"
+                      variant={isMember ? 'outline' : 'default'}
+                      onClick={isMember ? handleLeave : handleJoin}
+                      disabled={joining}
+                    >
+                      {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : isMember ? 'Leave' : 'Join'}
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-3 sm:gap-5 mt-1.5 flex-wrap">
+                <span className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+                  <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                   <span className="font-semibold text-foreground">{formatStat(community?.member_count ?? 0)}</span>
                   Members
                 </span>
-                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <FileText className="w-3.5 h-3.5" />
+                <span className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+                  <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                   <span className="font-semibold text-foreground">{formatStat(community?.post_count ?? 0)}</span>
                   Posts
                 </span>
-                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Calendar className="w-3.5 h-3.5" />
+                <span className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+                  <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                   <span className="font-semibold text-foreground">{events.length}</span>
                   Events
                 </span>
               </div>
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex items-center gap-2 pb-0.5">
-              {user && community && (
-                <CreatePostDialog communityId={community.id} communitySlug={slug} onCreated={load}>
-                  <Button size="sm" variant="outline" className="gap-1.5">
-                    <Plus className="w-4 h-4" /> Post
-                  </Button>
-                </CreatePostDialog>
-              )}
-              {user && (
-                <Button
-                  size="sm"
-                  variant={isMember ? 'outline' : 'default'}
-                  onClick={isMember ? handleLeave : handleJoin}
-                  disabled={joining}
-                >
-                  {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : isMember ? 'Leave' : 'Join'}
-                </Button>
-              )}
             </div>
           </div>
         </div>
@@ -235,7 +236,8 @@ export default function CommunityPage() {
           {/* Main feed */}
           <div className="flex-1 min-w-0 space-y-3">
             {/* Tab bar */}
-            <div className="flex items-center gap-1 bg-card rounded-xl p-1 boty-shadow w-fit">
+            <div className="overflow-x-auto [scrollbar-width:none] [-webkit-overflow-scrolling:touch]">
+            <div className="flex items-center gap-1 bg-card rounded-xl p-1 boty-shadow w-fit min-w-max">
               {SORT_OPTS.map(({ value, label, icon: Icon }) => (
                 <button
                   key={value}
@@ -267,6 +269,7 @@ export default function CommunityPage() {
                   </span>
                 )}
               </button>
+            </div>
             </div>
 
             {loading ? (

@@ -3,7 +3,7 @@ export default function VetPracticeLoading() {
     <div className="min-h-screen animate-pulse">
       {/* Hero skeleton */}
       <div className="bg-card border-b border-border/50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-8 sm:py-8">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-muted shrink-0" />

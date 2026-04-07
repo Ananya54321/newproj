@@ -88,8 +88,8 @@ export function VetPracticeClient({ vetProfile, initialAppointments }: Props) {
     <div className="min-h-screen">
       {/* Hero */}
       <div className="bg-card border-b border-border/50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-8 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
                 <Stethoscope className="w-7 h-7 text-primary" />

@@ -17,7 +17,7 @@ export function DashboardContent({ profile }: DashboardContentProps) {
     ['veterinarian', 'ngo', 'store_owner'].includes(profile?.role ?? '')
 
   return (
-    <div className="flex-1 p-6 lg:p-8 max-w-6xl">
+    <div className="flex-1 pt-16 px-4 pb-6 sm:p-6 lg:p-8 max-w-6xl">
       {/* Header */}
       <div className="mb-8">
         <h1 className="font-serif text-3xl lg:text-4xl font-semibold text-foreground">
