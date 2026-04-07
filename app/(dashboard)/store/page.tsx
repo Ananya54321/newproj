@@ -156,7 +156,7 @@ export default function StoreDashboardPage() {
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">Store URL Slug <span className="text-destructive">*</span></label>
             <div className="flex items-center rounded-xl bg-background border border-border/60 overflow-hidden focus-within:ring-2 focus-within:ring-primary/30">
-              <span className="px-3 py-2.5 text-sm text-muted-foreground border-r border-border/60 bg-muted/30">furever.com/marketplace/</span>
+              <span className="px-3 py-2.5 text-sm text-muted-foreground border-r border-border/60 bg-muted/30">pawhaven.com/marketplace/</span>
               <input
                 required
                 type="text"
