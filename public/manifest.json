@@ -1,7 +1,7 @@
 {
-  "name": "Furever - A Pet Care Community",
-  "short_name": "Furever",
-  "description": "Connect with vets, pet owners, NGOs, and shops on Furever - the all-in-one pet care platform.",
+  "name": "PawHaven - A Pet Care Community",
+  "short_name": "PawHaven",
+  "description": "Connect with vets, pet owners, NGOs, and shops on PawHaven - the all-in-one pet care platform.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F7F4EF",

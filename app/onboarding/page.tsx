@@ -57,7 +57,7 @@ export default async function OnboardingPage() {
       <div className="w-full max-w-md space-y-6">
         {/* Logo */}
         <Link href="/">
-          <p className="font-serif text-2xl font-bold text-foreground tracking-wide">Furever</p>
+          <p className="font-serif text-2xl font-bold text-foreground tracking-wide">PawHaven</p>
         </Link>
 
         {/* Status card */}

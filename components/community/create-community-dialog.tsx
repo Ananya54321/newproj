@@ -136,7 +136,7 @@ export function CreateCommunityDialog({ onCreated, children }: CreateCommunityDi
               type="text"
               value={name}
               onChange={handleNameChange}
-              placeholder="Dogs of Furever"
+              placeholder="Dogs of PawHaven"
               className="w-full px-4 py-2.5 rounded-xl bg-background border border-border/60 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
@@ -155,7 +155,7 @@ export function CreateCommunityDialog({ onCreated, children }: CreateCommunityDi
                 type="text"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''))}
-                placeholder="dogs-of-furever"
+                placeholder="dogs-of-pawhaven"
                 className="flex-1 px-3 py-2.5 text-sm bg-transparent focus:outline-none"
               />
             </div>

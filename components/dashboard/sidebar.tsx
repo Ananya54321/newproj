@@ -130,7 +130,7 @@ export function DashboardSidebar() {
         {fullWidth && !collapsed ? (
           <>
             <Link href="/dashboard">
-              <p className="font-serif text-lg font-semibold text-foreground tracking-wide">Furever</p>
+              <p className="font-serif text-lg font-semibold text-foreground tracking-wide">PawHaven</p>
               {profile?.full_name && (
                 <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-36">
                   {profile.full_name}
@@ -175,7 +175,7 @@ export function DashboardSidebar() {
         ) : (
           /* Mobile header */
           <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
-            <p className="font-serif text-lg font-semibold text-foreground tracking-wide">Furever</p>
+            <p className="font-serif text-lg font-semibold text-foreground tracking-wide">PawHaven</p>
             {profile?.full_name && (
               <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-36">
                 {profile.full_name}

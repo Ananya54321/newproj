@@ -18,7 +18,7 @@ export function AdminTopBar() {
   return (
     <div className="flex items-center justify-between py-3 border-b border-border/30">
       <Link href="/admin" className="flex flex-col">
-        <span className="font-serif text-lg font-semibold text-foreground tracking-wide">Furever</span>
+        <span className="font-serif text-lg font-semibold text-foreground tracking-wide">PawHaven</span>
         {profile?.full_name && (
           <span className="text-xs text-muted-foreground leading-none">
             {profile.full_name} · Admin
