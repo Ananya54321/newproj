@@ -99,7 +99,10 @@ export function ProductCard({ product, index = 0, isVisible = true }: ProductCar
           <p className="text-xs text-muted-foreground mb-1 truncate">{product.store?.name}</p>
           <h3 className="font-serif text-sm sm:text-lg text-foreground mb-1 truncate">{product.name}</h3>
           {product.description && (
-            <p className="hidden sm:block text-sm text-muted-foreground mb-3 line-clamp-2">{product.description}</p>
+            <p
+              className="hidden sm:flex text-sm text-muted-foreground mb-3"
+              style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+            >{product.description}</p>
           )}
           <div className="flex items-center justify-between mt-1 sm:mt-0">
             <span className="text-sm sm:text-lg font-medium text-foreground">{formatPrice(product.price)}</span>

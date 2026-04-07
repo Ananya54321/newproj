@@ -181,7 +181,12 @@ export function ProductGrid({ products = [] }: ProductGridProps) {
                   {/* Info */}
                   <div className="p-3 sm:p-5">
                     <h3 className="font-serif text-sm sm:text-lg text-foreground mb-1 truncate">{product.name}</h3>
-                    <p className="hidden sm:block text-sm text-muted-foreground mb-3 line-clamp-2">{product.description}</p>
+                    {product.description && (
+                      <p
+                        className="hidden sm:flex text-sm text-muted-foreground mb-3"
+                        style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                      >{product.description}</p>
+                    )}
                     <div className="flex items-center gap-2 mt-1 sm:mt-0">
                       <span className="text-sm sm:text-base font-medium text-foreground">{formatPrice(product.price)}</span>
                     </div>
