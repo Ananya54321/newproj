@@ -99,7 +99,7 @@ export function NgosClient({ initialNgos, initialEvents }: Props) {
     <div className="min-h-screen">
       {/* Hero */}
       <div className="bg-card border-b border-border/50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-8 sm:py-8">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">

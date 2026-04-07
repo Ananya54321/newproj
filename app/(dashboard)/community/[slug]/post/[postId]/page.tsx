@@ -85,7 +85,7 @@ export default function PostDetailPage() {
     return (
       <div className="min-h-screen">
         <div className="bg-card border-b border-border/50">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 animate-pulse">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-5 sm:py-5 animate-pulse">
             <div className="h-4 bg-muted rounded w-32" />
           </div>
         </div>
@@ -126,7 +126,7 @@ export default function PostDetailPage() {
     <div className="min-h-screen">
       {/* Hero bar */}
       <div className="bg-card border-b border-border/50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-5 sm:py-5">
           <Link
             href={`/community/${slug}`}
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground boty-transition"
@@ -188,7 +188,7 @@ export default function PostDetailPage() {
                   className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline mb-4 px-3 py-1.5 rounded-lg bg-primary/5 boty-transition"
                 >
                   <ExternalLink className="w-4 h-4 shrink-0" />
-                  <span className="truncate max-w-sm">{post.link_url}</span>
+                  <span className="truncate max-w-[200px] sm:max-w-sm">{post.link_url}</span>
                 </a>
               )}
 

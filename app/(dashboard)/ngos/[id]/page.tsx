@@ -49,7 +49,7 @@ export default function NgoProfilePage() {
   })
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 space-y-6">
+    <div className="max-w-4xl mx-auto pt-16 pb-8 sm:py-8 px-4 sm:px-6 space-y-6">
       <Link href="/ngos" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground boty-transition">
         <ArrowLeft className="w-4 h-4" /> Back to NGOs
       </Link>

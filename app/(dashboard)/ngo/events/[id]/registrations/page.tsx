@@ -49,7 +49,7 @@ export default function NgoEventRegistrationsPage() {
   return (
     <div className="min-h-screen">
       <div className="bg-card border-b border-border/50">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-16 pb-8 sm:py-8">
           <Link
             href="/ngo/events"
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"

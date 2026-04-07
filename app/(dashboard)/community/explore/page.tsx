@@ -54,7 +54,7 @@ export default function ExplorePage() {
   )
 
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4 sm:px-6 space-y-6">
+    <div className="max-w-3xl mx-auto pt-16 pb-8 sm:py-8 px-4 sm:px-6 space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-2xl font-semibold text-foreground">Explore Communities</h1>
