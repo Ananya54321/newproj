@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, MapPin, User, Calendar } from 'lucide-react'
+import { ArrowLeft, MapPin, User, Calendar, Map } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { StatusUpdateButton } from '@/components/emergency/status-update-button'
 import { getServerUser, createServerSupabaseClient } from '@/lib/supabase/server'
@@ -97,6 +97,36 @@ export default async function EmergencyReportDetailPage({ params }: Props) {
         <div className="p-5 rounded-xl border border-border/60 bg-card">
           <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Description</p>
           <p className="text-sm text-foreground whitespace-pre-wrap">{report.description}</p>
+        </div>
+      )}
+
+      {/* Location with Map Button */}
+      {report.lat && report.lng && (
+        <div className="p-5 rounded-xl border border-border/60 bg-card">
+          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-3">Location</p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1">
+              <p className="text-sm text-foreground mb-1">{report.location}</p>
+              <p className="text-xs text-muted-foreground">
+                Coordinates: {report.lat.toFixed(6)}, {report.lng.toFixed(6)}
+              </p>
+            </div>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="gap-2 shrink-0"
+            >
+              <a
+                href={`https://www.google.com/maps?q=${report.lat},${report.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Map className="w-4 h-4" />
+                Open in Maps
+              </a>
+            </Button>
+          </div>
         </div>
       )}
 
