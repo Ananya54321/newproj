@@ -3,9 +3,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { getNGOUpdates, getNGODonations, deleteNGOUpdate, formatDonationAmount } from '@/lib/ngo/service'
+import { getNgoCollaborationRequests } from '@/lib/collaboration/service'
 import { NgoUpdateCard } from '@/components/ngo/ngo-update-card'
 import { NgoUpdateDialog } from '@/components/ngo/ngo-update-dialog'
-import type { NgoUpdate, DonationWithRelations } from '@/lib/auth/types'
+import { CollaborationRequestCard } from '@/components/collaboration/collaboration-request-card'
+import type { NgoUpdate, DonationWithRelations, NgoProductCollaborationWithRelations } from '@/lib/auth/types'
 import { Button } from '@/components/ui/button'
 import { Plus, Loader2, Heart, FileText, TrendingUp } from 'lucide-react'
 import { toast } from 'sonner'
@@ -17,17 +19,21 @@ export default function NgoDashboardPage() {
   const [donations, setDonations] = useState<DonationWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [collabRequests, setCollabRequests] = useState<NgoProductCollaborationWithRelations[]>([])
+  const [activeTab, setActiveTab] = useState<'updates' | 'collaborations'>('updates')
 
   const load = useCallback(async () => {
     if (!user?.id) return
     setLoading(true)
     try {
-      const [u, d] = await Promise.all([
+      const [u, d, c] = await Promise.all([
         getNGOUpdates(user.id),
         getNGODonations(user.id),
+        getNgoCollaborationRequests(user.id),
       ])
       setUpdates(u)
       setDonations(d)
+      setCollabRequests(c)
     } catch {
       toast.error('Failed to load dashboard data')
     } finally {
@@ -89,13 +95,13 @@ export default function NgoDashboardPage() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="bg-card rounded-2xl p-5 boty-shadow text-center">
             <div className="flex items-center justify-center gap-2 mb-1">
               <Heart className="w-4 h-4 text-primary" />
               <p className="text-2xl font-semibold text-foreground">{formatDonationAmount(totalDonations)}</p>
             </div>
-            <p className="text-xs text-muted-foreground">Total Donations Received</p>
+            <p className="text-xs text-muted-foreground">Total Donations</p>
           </div>
           <div className="bg-card rounded-2xl p-5 boty-shadow text-center">
             <div className="flex items-center justify-center gap-2 mb-1">
@@ -104,31 +110,130 @@ export default function NgoDashboardPage() {
             </div>
             <p className="text-xs text-muted-foreground">Updates Posted</p>
           </div>
+          <div className="bg-card rounded-2xl p-5 boty-shadow text-center">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <Heart className="w-4 h-4 text-primary" />
+              <p className="text-2xl font-semibold text-foreground">
+                {collabRequests.filter((c) => c.status === 'accepted').length}
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground">Active Collaborations</p>
+          </div>
         </div>
 
-        {/* Updates */}
+        {/* Tabs */}
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-foreground">Your Updates</h2>
+          <div className="flex items-center gap-1 border-b border-border/50 mb-4">
+            <button
+              type="button"
+              onClick={() => setActiveTab('updates')}
+              className={`px-4 py-2 text-sm font-medium boty-transition border-b-2 -mb-px ${
+                activeTab === 'updates' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Updates ({updates.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('collaborations')}
+              className={`px-4 py-2 text-sm font-medium boty-transition border-b-2 -mb-px flex items-center gap-1.5 ${
+                activeTab === 'collaborations' ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Heart className="w-3.5 h-3.5" />
+              Collaborations
+              {collabRequests.filter((c) => c.status === 'pending').length > 0 && (
+                <span className="px-1.5 py-0.5 text-xs rounded-full bg-amber-100 text-amber-800 font-medium">
+                  {collabRequests.filter((c) => c.status === 'pending').length} new
+                </span>
+              )}
+            </button>
           </div>
-          {updates.length === 0 ? (
-            <div className="py-12 text-center bg-card rounded-2xl boty-shadow">
-              <FileText className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="font-semibold text-foreground">No updates yet</p>
-              <p className="text-sm text-muted-foreground mt-1 mb-4">Share news with donors and supporters.</p>
-              <Button size="sm" onClick={() => setDialogOpen(true)}>Post First Update</Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {updates.map((u) => (
-                <NgoUpdateCard key={u.id} update={u} onDelete={handleDeleteUpdate} />
-              ))}
-            </div>
+
+          {/* Updates tab */}
+          {activeTab === 'updates' && (
+            <>
+              {updates.length === 0 ? (
+                <div className="py-12 text-center bg-card rounded-2xl boty-shadow">
+                  <FileText className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="font-semibold text-foreground">No updates yet</p>
+                  <p className="text-sm text-muted-foreground mt-1 mb-4">Share news with donors and supporters.</p>
+                  <Button size="sm" onClick={() => setDialogOpen(true)}>Post First Update</Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {updates.map((u) => (
+                    <NgoUpdateCard key={u.id} update={u} onDelete={handleDeleteUpdate} />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Collaborations tab */}
+          {activeTab === 'collaborations' && (
+            <>
+              {collabRequests.length === 0 ? (
+                <div className="py-12 text-center bg-card rounded-2xl boty-shadow">
+                  <Heart className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="font-semibold text-foreground">No collaboration requests yet</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Pet store owners can request to feature a product with your NGO, donating a percentage of profits.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Pending first */}
+                  {collabRequests.filter((c) => c.status === 'pending').length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-2">Pending Requests</p>
+                      <div className="space-y-3">
+                        {collabRequests.filter((c) => c.status === 'pending').map((c) => (
+                          <CollaborationRequestCard
+                            key={c.id}
+                            collaboration={c}
+                            onResponded={(id, accepted) => {
+                              setCollabRequests((prev) =>
+                                prev.map((r) =>
+                                  r.id === id ? { ...r, status: accepted ? 'accepted' : 'rejected' } : r
+                                )
+                              )
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {/* Accepted */}
+                  {collabRequests.filter((c) => c.status === 'accepted').length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-2">Active Collaborations</p>
+                      <div className="space-y-3">
+                        {collabRequests.filter((c) => c.status === 'accepted').map((c) => (
+                          <CollaborationRequestCard key={c.id} collaboration={c} onResponded={() => {}} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {/* Rejected */}
+                  {collabRequests.filter((c) => c.status === 'rejected').length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground mb-2">Declined</p>
+                      <div className="space-y-3 opacity-60">
+                        {collabRequests.filter((c) => c.status === 'rejected').map((c) => (
+                          <CollaborationRequestCard key={c.id} collaboration={c} onResponded={() => {}} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
 
         {/* Recent donations */}
-        {donations.length > 0 && (
+        {donations.length > 0 && activeTab === 'updates' && (
           <div>
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="w-4 h-4 text-primary" />
