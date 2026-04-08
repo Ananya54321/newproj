@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, Package, Pencil, Trash2, Store as StoreIcon, ExternalLink, Loader2, AlertTriangle, RotateCcw } from 'lucide-react'
+import { Plus, Package, Pencil, Trash2, Store as StoreIcon, ExternalLink, Loader2, AlertTriangle, RotateCcw, Heart } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import {
   getOwnerStoreWithProducts,
@@ -12,9 +12,10 @@ import {
   createStore,
   type StoreFormData,
 } from '@/lib/marketplace/service'
+import { getStoreCollaborations, getProductCollaborationAny } from '@/lib/collaboration/service'
 import { supabaseClient } from '@/lib/supabase/client'
 import { formatPrice } from '@/lib/marketplace/service'
-import type { Store, Product } from '@/lib/auth/types'
+import type { Store, Product, NgoProductCollaborationWithRelations } from '@/lib/auth/types'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import {
@@ -28,6 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import { CollaborateModal } from '@/components/collaboration/collaborate-modal'
 
 export default function StoreDashboardPage() {
   const { user, profile } = useAuth()
@@ -36,7 +38,14 @@ export default function StoreDashboardPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [creatingStore, setCreatingStore] = useState(false)
-  const [activeTab, setActiveTab] = useState<'products' | 'archived'>('products')
+  const [activeTab, setActiveTab] = useState<'products' | 'archived' | 'collaborations'>('products')
+
+  // Collaboration state
+  const [collaborateProduct, setCollaborateProduct] = useState<Product | null>(null)
+  const [collaborateModalOpen, setCollaborateModalOpen] = useState(false)
+  const [productCollaborations, setProductCollaborations] = useState<Record<string, NgoProductCollaborationWithRelations>>({})
+  const [collabsLoading, setCollabsLoading] = useState(false)
+  const [allCollaborations, setAllCollaborations] = useState<NgoProductCollaborationWithRelations[]>([])
 
   // Create store form state
   const [newStoreName, setNewStoreName] = useState('')
@@ -58,7 +67,23 @@ export default function StoreDashboardPage() {
     }
   }, [user?.id])
 
+  const loadCollaborations = useCallback(async (storeId: string) => {
+    setCollabsLoading(true)
+    try {
+      const collabs = await getStoreCollaborations(storeId)
+      setAllCollaborations(collabs)
+      const map: Record<string, NgoProductCollaborationWithRelations> = {}
+      for (const c of collabs) { map[c.product_id] = c }
+      setProductCollaborations(map)
+    } catch {
+      // non-fatal
+    } finally {
+      setCollabsLoading(false)
+    }
+  }, [])
+
   useEffect(() => { load() }, [load])
+  useEffect(() => { if (store?.id) loadCollaborations(store.id) }, [store?.id, loadCollaborations])
 
   // Redirect non store_owners
   useEffect(() => {
@@ -194,10 +219,22 @@ export default function StoreDashboardPage() {
   const activeProducts = visibleProducts.filter((p) => p.is_active)
   const draftProducts = visibleProducts.filter((p) => !p.is_active)
 
-  const tabProducts = activeTab === 'products' ? visibleProducts : archivedProducts
+  const tabProducts = activeTab === 'products' ? visibleProducts : activeTab === 'archived' ? archivedProducts : []
 
   return (
     <div className="min-h-screen">
+      {/* Collaborate modal */}
+      {collaborateProduct && store && (
+        <CollaborateModal
+          open={collaborateModalOpen}
+          onOpenChange={setCollaborateModalOpen}
+          product={collaborateProduct}
+          storeId={store.id}
+          existingCollaboration={productCollaborations[collaborateProduct.id] ?? null}
+          onCollaborationChanged={() => loadCollaborations(store.id)}
+        />
+      )}
+
       {/* Hero */}
       <div className="bg-card border-b border-border/50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-16 pb-8 sm:py-8">
@@ -272,23 +309,98 @@ export default function StoreDashboardPage() {
       {/* Tabs */}
       <div>
         <div className="flex items-center gap-1 border-b border-border/50 mb-4">
-          {(['products', 'archived'] as const).map((tab) => (
+          {(['products', 'archived', 'collaborations'] as const).map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-sm font-medium boty-transition border-b-2 -mb-px ${
+              className={`px-4 py-2 text-sm font-medium boty-transition border-b-2 -mb-px flex items-center gap-1.5 ${
                 activeTab === tab
                   ? 'border-primary text-foreground'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
-              {tab === 'products' ? `Products (${visibleProducts.length})` : `Archived (${archivedProducts.length})`}
+              {tab === 'products' && `Products (${visibleProducts.length})`}
+              {tab === 'archived' && `Archived (${archivedProducts.length})`}
+              {tab === 'collaborations' && (
+                <>
+                  <Heart className="w-3.5 h-3.5" />
+                  Collaborations
+                  {allCollaborations.length > 0 && (
+                    <span className="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-primary/10 text-primary font-medium">
+                      {allCollaborations.length}
+                    </span>
+                  )}
+                </>
+              )}
             </button>
           ))}
         </div>
 
-        {tabProducts.length === 0 ? (
+        {/* Collaborations tab */}
+        {activeTab === 'collaborations' && (
+          <>
+            {collabsLoading ? (
+              <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" /> Loading…
+              </div>
+            ) : allCollaborations.length === 0 ? (
+              <div className="py-12 text-center bg-card rounded-2xl boty-shadow">
+                <Heart className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="font-semibold text-foreground">No collaboration requests yet</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Select a product and click the collaborate button to request an NGO partnership.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {allCollaborations.map((collab) => {
+                  const statusColor: Record<string, string> = {
+                    pending: 'bg-amber-100 text-amber-800',
+                    accepted: 'bg-emerald-100 text-emerald-800',
+                    rejected: 'bg-destructive/10 text-destructive',
+                  }
+                  return (
+                    <div key={collab.id} className="bg-card rounded-2xl boty-shadow p-4 space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                            {collab.product.images?.[0] ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={collab.product.images[0]} alt={collab.product.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <Package className="w-4 h-4 text-muted-foreground/40" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground truncate">{collab.product.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {collab.ngo_proceeds_percent}% → {collab.ngo.ngo_profile?.organization_name ?? collab.ngo.full_name}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize shrink-0 ${statusColor[collab.status] ?? ''}`}>
+                          {collab.status}
+                        </span>
+                      </div>
+                      {collab.status === 'accepted' && (
+                        <p className="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-1.5">
+                          Featured in marketplace — buyers can see this NGO partnership.
+                        </p>
+                      )}
+                      {collab.ngo_response_message && (
+                        <p className="text-xs text-muted-foreground italic">NGO: &quot;{collab.ngo_response_message}&quot;</p>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Products / Archived tabs */}
+        {activeTab !== 'collaborations' && (tabProducts.length === 0 ? (
           <div className="py-12 text-center bg-card rounded-2xl boty-shadow">
             <Package className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
             {activeTab === 'products' ? (
@@ -308,7 +420,14 @@ export default function StoreDashboardPage() {
           </div>
         ) : (
           <div className="space-y-2">
-            {tabProducts.map((product) => (
+            {tabProducts.map((product) => {
+              const collab = productCollaborations[product.id] ?? null
+              const collabStatusColor: Record<string, string> = {
+                pending: 'bg-amber-100 text-amber-800',
+                accepted: 'bg-emerald-100 text-emerald-800',
+                rejected: 'bg-destructive/10 text-destructive',
+              }
+              return (
               <div
                 key={product.id}
                 className={`flex items-center gap-4 bg-card rounded-xl p-4 boty-shadow ${product.is_archived ? 'opacity-60' : ''}`}
@@ -323,7 +442,7 @@ export default function StoreDashboardPage() {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium text-foreground truncate">{product.name}</p>
                     {!product.is_active && !product.is_archived && (
                       <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">Draft</span>
@@ -333,6 +452,12 @@ export default function StoreDashboardPage() {
                     )}
                     {product.stock === 0 && !product.is_archived && (
                       <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">Out of stock</span>
+                    )}
+                    {collab && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded flex items-center gap-1 ${collabStatusColor[collab.status] ?? ''}`}>
+                        <Heart className="w-3 h-3" />
+                        {collab.status === 'accepted' ? 'Featured' : collab.status === 'pending' ? 'Collab Pending' : 'Collab Rejected'}
+                      </span>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -352,6 +477,15 @@ export default function StoreDashboardPage() {
                     </button>
                   ) : (
                     <>
+                      {/* Collaborate button */}
+                      <button
+                        type="button"
+                        onClick={() => { setCollaborateProduct(product); setCollaborateModalOpen(true) }}
+                        className={`p-2 boty-transition ${collab && collab.status === 'accepted' ? 'text-emerald-600' : collab ? 'text-amber-500' : 'text-muted-foreground hover:text-primary'}`}
+                        title={collab ? `Collaboration: ${collab.status}` : 'Request NGO collaboration'}
+                      >
+                        <Heart className="w-4 h-4" />
+                      </button>
                       <Link
                         href={`/store/products/${product.id}/edit`}
                         className="p-2 text-muted-foreground hover:text-foreground boty-transition"
@@ -386,9 +520,10 @@ export default function StoreDashboardPage() {
                   )}
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
-        )}
+        ))}
       </div>
       </div>
     </div>

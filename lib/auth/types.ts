@@ -76,6 +76,11 @@ export interface Database {
         Insert: Omit<OrderItem, 'id' | 'created_at'>
         Update: Partial<Omit<OrderItem, 'id' | 'order_id' | 'created_at'>>
       }
+      ngo_product_collaborations: {
+        Row: NgoProductCollaboration
+        Insert: Omit<NgoProductCollaboration, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<NgoProductCollaboration, 'id' | 'product_id' | 'store_id' | 'ngo_id' | 'created_at'>>
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -519,6 +524,35 @@ export const EMERGENCY_CATEGORY_CONFIG: Record<
   abandoned: { label: 'Abandoned',      color: 'bg-amber-100 text-amber-800' },
   sick:      { label: 'Sick Animal',    color: 'bg-purple-100 text-purple-800' },
   other:     { label: 'Other',          color: 'bg-secondary text-secondary-foreground' },
+}
+
+// ─── NGO Product Collaboration types ─────────────────────────────────────────
+
+export type NgoCollaborationStatus = 'pending' | 'accepted' | 'rejected'
+
+export interface NgoProductCollaboration {
+  id: string
+  product_id: string
+  store_id: string
+  ngo_id: string
+  status: NgoCollaborationStatus
+  ngo_proceeds_percent: number
+  store_message: string | null
+  ngo_response_message: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface NgoProductCollaborationWithRelations extends NgoProductCollaboration {
+  product: Pick<Product, 'id' | 'name' | 'images' | 'price' | 'category'>
+  store: Pick<Store, 'id' | 'name' | 'slug' | 'logo_url'>
+  ngo: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> & {
+    ngo_profile: Pick<NgoProfile, 'organization_name' | 'mission_statement'>
+  }
+}
+
+export interface ProductWithCollaboration extends ProductWithStore {
+  collaboration: NgoProductCollaborationWithRelations | null
 }
 
 // ─── Phase 10 domain models ───────────────────────────────────────────────────
