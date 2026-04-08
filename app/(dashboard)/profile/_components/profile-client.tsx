@@ -153,7 +153,7 @@ export function ProfileClient({ profile: initialProfile }: Props) {
               <label className="block text-sm font-medium text-foreground mb-1.5">Username</label>
               <div className="flex rounded-xl overflow-hidden border border-border/60 focus-within:ring-2 focus-within:ring-primary/30">
                 <span className="px-3 py-2.5 bg-muted text-sm text-muted-foreground border-r border-border/40 shrink-0">
-                  furever.app/users/
+                  pawhaven.app/users/
                 </span>
                 <input
                   type="text"

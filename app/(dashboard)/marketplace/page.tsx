@@ -1,22 +1,35 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { SlidersHorizontal, X, Search, ShoppingBag } from 'lucide-react'
+import { SlidersHorizontal, X, Search, ShoppingBag, Heart, ExternalLink } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { ProductCard } from '@/components/marketplace/product-card'
 import { getProducts } from '@/lib/marketplace/service'
+import { getFeaturedProducts } from '@/lib/collaboration/service'
+import { formatPrice } from '@/lib/marketplace/service'
 import { PRODUCT_CATEGORIES } from '@/lib/auth/types'
-import type { ProductWithStore, ProductCategory } from '@/lib/auth/types'
+import type { ProductWithStore, ProductCategory, ProductWithCollaboration } from '@/lib/auth/types'
+import { useCart } from '@/components/boty/cart-context'
 
 const ALL_CATEGORIES = [{ value: 'all', label: 'All Products' }, ...PRODUCT_CATEGORIES]
 
 export default function MarketplacePage() {
+  const { addItem } = useCart()
   const [products, setProducts] = useState<ProductWithStore[]>([])
+  const [featuredProducts, setFeaturedProducts] = useState<ProductWithCollaboration[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'all'>('all')
   const [search, setSearch] = useState('')
   const [showFilters, setShowFilters] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
   const gridRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    getFeaturedProducts()
+      .then(setFeaturedProducts)
+      .catch(() => setFeaturedProducts([]))
+  }, [])
 
   useEffect(() => {
     setLoading(true)
@@ -131,6 +144,101 @@ export default function MarketplacePage() {
                   {cat.label}
                 </button>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Featured Collaborations */}
+      {featuredProducts.length > 0 && (
+        <div className="bg-primary/5 border-b border-primary/10">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Heart className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-serif text-xl font-semibold text-foreground">Featured for Good</h2>
+                <p className="text-xs text-muted-foreground">Every purchase supports a verified animal NGO</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {featuredProducts.map((product) => {
+                const collab = product.collaboration!
+                const ngoName = collab.ngo.ngo_profile?.organization_name ?? collab.ngo.full_name ?? 'NGO'
+                const storeSlug = product.store?.slug ?? product.store_id
+                const firstImage = product.images?.[0] ?? null
+                return (
+                  <Link
+                    key={product.id}
+                    href={`/marketplace/${storeSlug}/${product.id}`}
+                    className="group bg-card rounded-2xl boty-shadow overflow-hidden boty-transition hover:scale-[1.02] block"
+                  >
+                    {/* Image */}
+                    <div className="relative aspect-4/3 bg-muted overflow-hidden">
+                      {firstImage ? (
+                        <Image
+                          src={firstImage}
+                          alt={product.name}
+                          fill
+                          className="object-cover group-hover:scale-105 boty-transition"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                          <ShoppingBag className="w-10 h-10 text-muted-foreground/30" />
+                        </div>
+                      )}
+                      {/* NGO badge overlay */}
+                      <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1">
+                        <Heart className="w-3 h-3 text-primary fill-primary" />
+                        <span className="text-xs font-medium text-primary">{collab.ngo_proceeds_percent}% to {ngoName}</span>
+                      </div>
+                    </div>
+                    {/* Info */}
+                    <div className="p-4">
+                      <p className="text-xs text-muted-foreground mb-0.5">{product.store?.name}</p>
+                      <h3 className="font-serif text-base font-semibold text-foreground mb-2 truncate">{product.name}</h3>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-foreground">{formatPrice(product.price)}</span>
+                        {product.stock > 0 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              addItem({
+                                id: product.id,
+                                name: product.name,
+                                description: product.description ?? '',
+                                price: product.price,
+                                image: firstImage ?? '/placeholder.svg',
+                                stock: product.stock,
+                                storeId: product.store_id,
+                                storeSlug: storeSlug,
+                              })
+                            }}
+                            className="text-xs px-3 py-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 boty-transition"
+                          >
+                            Add to cart
+                          </button>
+                        )}
+                      </div>
+                      {/* NGO info row */}
+                      <div className="mt-3 pt-3 border-t border-border/40 flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <Heart className="w-3 h-3 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-foreground truncate">{ngoName}</p>
+                          {collab.ngo.ngo_profile?.mission_statement && (
+                            <p className="text-xs text-muted-foreground truncate">{collab.ngo.ngo_profile.mission_statement}</p>
+                          )}
+                        </div>
+                        <ExternalLink className="w-3 h-3 text-muted-foreground/50 shrink-0" />
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
             </div>
           </div>
         </div>

@@ -3,18 +3,19 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ShoppingBag, Package } from 'lucide-react'
+import { ShoppingBag, Package, Heart } from 'lucide-react'
 import { useCart } from '@/components/boty/cart-context'
 import { formatPrice } from '@/lib/marketplace/service'
-import type { ProductWithStore } from '@/lib/auth/types'
+import type { ProductWithStore, NgoProductCollaborationWithRelations } from '@/lib/auth/types'
 
 interface ProductCardProps {
   product: ProductWithStore
   index?: number
   isVisible?: boolean
+  collaboration?: NgoProductCollaborationWithRelations | null
 }
 
-export function ProductCard({ product, index = 0, isVisible = true }: ProductCardProps) {
+export function ProductCard({ product, index = 0, isVisible = true, collaboration = null }: ProductCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false)
   const { addItem } = useCart()
 
@@ -68,9 +69,17 @@ export function ProductCard({ product, index = 0, isVisible = true }: ProductCar
           )}
 
           {/* Category badge */}
-          {product.category && (
+          {product.category && !collaboration && (
             <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs tracking-wide bg-primary/10 text-primary capitalize">
               {product.category}
+            </span>
+          )}
+
+          {/* NGO collaboration badge */}
+          {collaboration && (
+            <span className="absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-white/90 backdrop-blur-sm text-primary shadow-sm">
+              <Heart className="w-3 h-3 fill-primary" />
+              {collaboration.ngo_proceeds_percent}% to NGO
             </span>
           )}
 
@@ -99,7 +108,10 @@ export function ProductCard({ product, index = 0, isVisible = true }: ProductCar
           <p className="text-xs text-muted-foreground mb-1 truncate">{product.store?.name}</p>
           <h3 className="font-serif text-sm sm:text-lg text-foreground mb-1 truncate">{product.name}</h3>
           {product.description && (
-            <p className="hidden sm:block text-sm text-muted-foreground mb-3 line-clamp-2">{product.description}</p>
+            <p
+              className="hidden sm:flex text-sm text-muted-foreground mb-3"
+              style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+            >{product.description}</p>
           )}
           <div className="flex items-center justify-between mt-1 sm:mt-0">
             <span className="text-sm sm:text-lg font-medium text-foreground">{formatPrice(product.price)}</span>
